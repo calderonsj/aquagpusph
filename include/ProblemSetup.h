@@ -154,6 +154,43 @@ public:
 	    cl_device_type device_type;
 	}settings;
 
+	/** \struct sphVariables
+	 * Variables registered.
+	 */
+	struct sphVariables
+	{
+        /// Name of the variables
+        std::deque<char*> names;
+        /// Type of the variables
+        std::deque<char*> types;
+        /// Lengths
+        std::deque<char*> lengths;
+        /// Values
+        std::deque<char*> values;
+        /// Save flags
+        std::deque<bool> saves;
+
+        /** Add a new variable. It can be repeated.
+         * @param name Name of the variable.
+         * @param type Type of the varaible.
+         * @param length Array length, 1 for scalars, 0 for arrays that will
+         * not be allocated at the start (for instance the heads of chains,
+         * which requires the number of cells).
+         * @param value Variable value, NULL for arrays. It is optional for
+         * scalar variables.
+         * @param save true if the variable should be saved, false otherwise.
+         */
+        void registerVariable(const char* name,
+                              const char* type,
+                              const char* length,
+                              const char* value,
+                              const bool save);
+        /** Remove the stored variables.
+         */
+        void destroy();
+	}variables;
+
+
 	/** \struct sphOpenCLKernels
 	 * Data structure used to store the kernel file paths.
 	 */
