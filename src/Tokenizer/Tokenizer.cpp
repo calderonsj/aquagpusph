@@ -77,7 +77,7 @@ float Tokenizer::variable(const char* name)
     if(!isVariable(name)){
         return 0.f;
     }
-    return _variables["name"];
+    return _variables[name];
 }
 
 float Tokenizer::solve(const char* eq)
