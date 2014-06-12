@@ -28,7 +28,7 @@ namespace Aqua{
  */
 int isKeyPressed();
 
-/** Compute a value which, being power of two, is greather or equal than n.
+/** Compute a value which, being power of two, is greater or equal than n.
  * @param n Number which may be not power of two.
  * @return next value which is power of two.
  */
@@ -40,13 +40,19 @@ unsigned int nextPowerOf2( unsigned int n );
  */
 unsigned int isPowerOf2(unsigned int x);
 
-/** Compute a value, which being divisible by divisor, is greather or equal
+/** Compute a value, which being divisible by divisor, is greater or equal
  * than n.
  * @param n Number to round up.
  * @param divisor Divisor.
  * @return Rounded up number.
  */
 unsigned int roundUp(unsigned int n, unsigned int divisor);
+
+/** Compute an integer value from a float one.
+ * @param n Number to round.
+ * @return Rounded number.
+ */
+int round(float n);
 
 /** Load an OpenCL kernel from a file.
  * @param kernel The output kernel identifier.
