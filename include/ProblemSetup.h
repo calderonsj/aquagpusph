@@ -542,6 +542,120 @@ public:
 	 */
 	void addFluid();
 
+	/** @class sphParticlesSet ProblemSetup.h ProblemSetup.h
+	 * @brief Set of particles data.
+	 */
+	class sphParticlesSet
+	{
+    public:
+		/** Constructor
+		 */
+		sphParticlesSet();
+
+		/** Destructor
+		 */
+		~sphParticlesSet();
+
+        /** Set the number of particles
+         * @param N Number of particles.
+         */
+        void n(unsigned int N){_n = N;}
+
+        /** Get the number of particles
+         * @return Number of particles.
+         */
+        unsigned int n() const {return _n;}
+
+        /** Add a scalar
+         * @param name Scalar name.
+         * @param value Scalar value.
+         */
+        void addScalar(const char* name, const char* value);
+
+        /** Get the scalar names list
+         * @return scalar names.
+         */
+        std::deque<char*> scalarNames() const {return _snames;}
+
+        /** Get the scalar values list
+         * @return scalar values.
+         */
+        std::deque<char*> scalarValues() const {return _svalues;}
+
+        /** Set the input file
+         * @param path File path.
+         * @param format File format.
+         * @param fields Fields to be loaded from the file
+         */
+        void input(const char* path, const char* format, const char* fields);
+
+        /** Get the input file path
+         * @return File path.
+         */
+        const char* inputPath() const {return _in_path;}
+
+        /** Get the input file format
+         * @return File format.
+         */
+        const char* inputFormat() const {return _in_format;}
+
+        /** Get the input file fields
+         * @return Fields to be loaded list.
+         */
+        std::deque<char*> inputFields() const {return _in_fields;}
+
+        /** Set the output file
+         * @param path File path.
+         * @param format File format.
+         * @param fields Fields to be written in the file
+         */
+        void output(const char* path, const char* format, const char* fields);
+
+        /** Get the output file path
+         * @return File path.
+         */
+        const char* outputPath() const {return _out_path;}
+
+        /** Get the output file format
+         * @return File format.
+         */
+        const char* outputFormat() const {return _out_format;}
+
+        /** Get the output file fields
+         * @return Fields to be written list.
+         */
+        std::deque<char*> outputFields() const {return _out_fields;}
+    private:
+	    /// Number of particles
+	    unsigned int _n;
+
+        /// Scalars names
+        std::deque<char*> _snames;
+        /// Scalar values
+        std::deque<char*> _svalues;
+
+		/// Particles data file to load
+		char *_in_path;
+
+		/// Format of the particles data file to load
+		char *_in_format;
+
+		/// Fields to load from the file
+		std::deque<char*> _in_fields;
+
+		/// Fluid particles data file to write
+		char *_out_path;
+
+		/// Fluid particles data file to write format
+		char *_out_format;
+
+		/// Fields to write in the file
+		std::deque<char*> _out_fields;
+	};
+
+    /// Array of particles sets
+    std::deque<sphParticlesSet*> sets;
+
 	/** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
 	 * Data structure used to store the motions data.
 	 */
