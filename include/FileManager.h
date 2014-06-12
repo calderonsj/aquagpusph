@@ -23,7 +23,7 @@
 
 #include <sphPrerequisites.h>
 #include <Singleton.h>
-#include <Fluid.h>
+#include <CalcServer.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Log.h>
 #include <InputOutput/Energy.h>
@@ -74,9 +74,9 @@ public:
 	FILE* boundsFile();
 
     /** Load the input data files.
-     * @return The built Fluid manager, NULL if errors happened.
+     * @return The built Calculation server, NULL if errors happened.
      */
-    Fluid* load();
+    CalcServer::CalcServer* load();
 
     /** Save the particles.
      * @return false if all gone right, true otherwise.

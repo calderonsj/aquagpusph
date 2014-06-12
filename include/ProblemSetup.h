@@ -518,7 +518,7 @@ public:
 		 */
         float delta;
 
-		/** Dynamic viscosity (corrected by the articial viscosity parameter
+		/** Dynamic viscosity (corrected by the artificial viscosity parameter
          * \f$\alpha\f$)
          */
 		float visc_dyn_corrected;

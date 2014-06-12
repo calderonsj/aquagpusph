@@ -74,7 +74,7 @@ protected:
      */
     void file(const char* filename);
 
-    /** Set the file name as the first ungenerate file.
+    /** Set the file name as the first non-existing one.
      * @param basename The base name of the file. In this base name the %d
      * substring will be replaced by the first integer such that the file
      * does not exist.

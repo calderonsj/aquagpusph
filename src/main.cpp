@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
 	InputOutput::ArgumentsManager *A = NULL;
 	InputOutput::FileManager *F = NULL;
 	InputOutput::ProblemSetup *P = NULL;
-	InputOutput::Fluid *fluid = NULL;
 	CalcServer::CalcServer *C = NULL;
 	InputOutput::TimeManager *T = NULL;
 	InputOutput::ScreenManager *S = NULL;
@@ -100,20 +99,17 @@ int main(int argc, char *argv[])
         delete A;
         delete F;
         delete P;
-        delete fluid;
         delete C;
         delete T;
         delete S;
         return EXIT_FAILURE;
     }
 
-    // Now we can load the data from the input files
-    fluid = F->load();
-    if(!fluid){
+    // Now we can load the simulation definition
+    if(F->load()){
         delete A;
         delete F;
         delete P;
-        delete fluid;
         delete C;
         delete T;
         delete S;
@@ -121,14 +117,12 @@ int main(int argc, char *argv[])
     }
 
 	T = new InputOutput::TimeManager();
-	C = new CalcServer::CalcServer();
 
 	if(C->setup())
 	{
         delete A;
         delete F;
         delete P;
-        delete fluid;
         delete C;
         delete T;
         delete S;
@@ -147,8 +141,6 @@ int main(int argc, char *argv[])
             S->printDate();
 	        S->addMessageF(1, "Destroying time manager...\n");
 	        delete T; T = NULL;
-	        S->addMessageF(1, "Destroying fluid host layer...\n");
-	        delete fluid; fluid = NULL;
 	        S->addMessageF(1, "Destroying calculation server...\n");
 	        delete C; C = NULL;
 	        S->addMessageF(1, "Destroying problem setup...\n");
@@ -161,7 +153,7 @@ int main(int argc, char *argv[])
 	        S->addMessageF(1, msg);
 		    return EXIT_FAILURE;
 		}
-		fluid->retrieveData();
+		// fluid->retrieveData();
 		if(F->save())
             return EXIT_FAILURE;
 	}
@@ -172,8 +164,6 @@ int main(int argc, char *argv[])
 	float Time = T->time();
     S->addMessageF(1, "Destroying time manager...\n");
 	delete T; T = NULL;
-    S->addMessageF(1, "Destroying fluid host layer...\n");
-	delete fluid; fluid = NULL;
     S->addMessageF(1, "Destroying calculation server...\n");
 	delete C; C = NULL;
     S->addMessageF(1, "Destroying problem setup...\n");
