@@ -105,6 +105,12 @@ private:
 	 */
 	bool parseFluid(xercesc::DOMElement *root);
 
+	/** Look for particles set sections.
+	 * @param root Root XML node.
+	 * @return false if all gone right, true otherwise
+	 */
+	bool parseSet(xercesc::DOMElement *root);
+
 	/** Look for sensors sections.
 	 * @param root Root XML node.
 	 * @return false if all gone right, true otherwise
@@ -176,6 +182,13 @@ private:
 	 * @return false if all gone right, true otherwise
 	 */
 	bool writeFluid(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+	/** Write the particles set sections.
+	 * @param doc XML generated document.
+	 * @param root Root XML node.
+	 * @return false if all gone right, true otherwise
+	 */
+	bool writeSet(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
 	/** Write the sensors section.
 	 * @param doc XML generated document.
