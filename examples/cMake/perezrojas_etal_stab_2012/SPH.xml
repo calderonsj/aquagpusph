@@ -18,6 +18,13 @@ Authors:
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" save="false" />
+        <Variable name="dr" type="float" value="0.0038" save="false" />
+        <Variable name="hfac" type="float" value="3.0" save="false" />
+        <Variable name="h" type="float" value="hfac * dr" save="false" />
+    </Variables>
+
 	<SPH>
         <!-- Gravity force vector [m/s2] -->
 		<Option name="g" x="0.0" y="0.0" z="-9.81" />

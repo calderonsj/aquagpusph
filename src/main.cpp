@@ -106,7 +106,8 @@ int main(int argc, char *argv[])
     }
 
     // Now we can load the simulation definition
-    if(F->load()){
+    C = F->load();
+    if(!C){
         delete A;
         delete F;
         delete P;

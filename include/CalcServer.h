@@ -406,7 +406,7 @@ public:
 
 private:
     /// User registered variables
-    InputOutput::Variables _vars;
+    InputOutput::Variables *_vars;
 
 	/** Setup the OpenCL stuff.
 	 * @return false if the OpenCL environment has been succesfully built,

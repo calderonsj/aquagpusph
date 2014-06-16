@@ -61,7 +61,7 @@ namespace InputOutput{
  *   -# \f$\frac{d \rho}{d t}$\f
  *   -# \f$m$\f
  *   -# moving flag
- * which must be sorted inthe shown way
+ * which must be sorted in the shown way
  */
 class ASCII : public Particles
 {
@@ -89,7 +89,7 @@ public:
 
 private:
     /** Count the number of Particles.
-     * @param f File to be readed.
+     * @param f File to be read.
      * @return The number of particles found in the file.
      */
     unsigned int readNParticles(FILE *f);
@@ -99,7 +99,7 @@ private:
      */
     void formatLine(char* l);
 
-    /** Count the number of fields in a formated text line.
+    /** Count the number of fields in a formatted text line.
      * @param l String line.
      * @return The number of fields found in the line.
      * @warning It is assumed that formatLine has been called before.
