@@ -103,22 +103,15 @@ string = """#############################################################
 #############################################################
 #
 #    Fluid definition autoexported by AQUAgpusph.
-#    Particle needed data are:
-#        Position
-#        Normal      (Fluid particles can have null normal)
-#        Velocity
-#        Mass
-#    Particle optional data are (sorted):
-#        Imove       (1)
-#        Density     (refd)
-#        Sound speed (cs)
-#        KernelH     (h)
-#        Ifluid      (ifluid)
-#        DensityRate (0.0)
-#        Force       ([0,0,0])
-#
-#    Normal direction is not relevant, but ensure that for
-#    solid vertexes are normalised.
+#    Fields:
+#        pos  (pos.x, pos.y, pos.z, 0.0)
+#        n    (n.x, n.y, n.z, 0.0)
+#        v    (v.x, v.y, v.z, 0.0)
+#        dvdt (dvdt.x, dvdt.y, dvdt.z, 0.0)
+#        rho
+#        drhodt
+#        mass
+#        imove
 #
 #############################################################
 """
@@ -149,7 +142,7 @@ for i in range(0, n):
     press = refd * g * (hFluid - pos[2]);
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd;
     mass = dens * dr**3.0
-    string = "{} {} {},{} {} {},{} {} {},{} {} {},{},{},{},{}\n".format(
+    string = "{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{},{},{},{}\n".format(
         pos[0], pos[1], pos[2],
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
@@ -231,7 +224,7 @@ for i in range(0, N):
         press = prb*pow(dens / refd, gamma - 1.0 );
     imove = -1
     mass  = (dr / DeLeffeDistFactor)**2.0
-    string = "{} {} {},{} {} {},{} {} {},{} {} {},{},{},{},{}\n".format(
+    string = "{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{},{},{},{}\n".format(
         pos[0], pos[1], pos[2],
         normal[0], normal[1], normal[2],
         0.0, 0.0, 0.0,

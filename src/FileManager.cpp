@@ -173,6 +173,8 @@ CalcServer::CalcServer* FileManager::load()
             return NULL;
     }
 
+    return NULL;
+
     return C;
 }
 

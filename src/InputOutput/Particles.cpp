@@ -25,8 +25,8 @@
 
 namespace Aqua{ namespace InputOutput{
 
-Particles::Particles(unsigned int first, unsigned int n, unsigned int ifluid)
-    : _ifluid(ifluid)
+Particles::Particles(unsigned int first, unsigned int n, unsigned int iset)
+    : _iset(iset)
     , _output_file(NULL)
 {
     _bounds.x = first;
