@@ -68,6 +68,13 @@ protected:
      */
     unsigned int setId(){return _iset;}
 
+    /** Load and pass to the server the default arrays:
+     *   -# iset
+     *   -# id_sorted
+     *   -# id_unsorted
+     */
+    bool loadDefault();
+
     /** Set a new file.
      * @param filename The new file to work. Optionally a null parameter can
      * be passed in order to clear the stored file.
@@ -89,7 +96,6 @@ protected:
     bool file(const char* basename,
               unsigned int startindex,
               unsigned int digits=5);
-
 private:
     /// Particles managed bounds
     uivec2 _bounds;
