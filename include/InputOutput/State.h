@@ -81,6 +81,12 @@ private:
 	 */
 	bool parseVariables(xercesc::DOMElement *root);
 
+	/** Look for tools sections.
+	 * @param root root XML node.
+	 * @return false if all gone right, true otherwise
+	 */
+	bool parseTools(xercesc::DOMElement *root);
+
 	/** Look for OpenCL settings sections.
 	 * @param root Root XML node.
 	 * @return false if all gone right, true otherwise
@@ -148,12 +154,19 @@ private:
 	 */
 	bool writeSettings(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-	/** Write the varqaibles section.
+	/** Write the variables section.
 	 * @param doc XML generated document.
 	 * @param root root XML node.
 	 * @return false if all gone right, true otherwise
 	 */
 	bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+	/** Write the tools section.
+	 * @param doc XML generated document.
+	 * @param root root XML node.
+	 * @return false if all gone right, true otherwise
+	 */
+	bool writeTools(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
 	/** Wrute the OpenCL section.
 	 * @param doc XML generated document.

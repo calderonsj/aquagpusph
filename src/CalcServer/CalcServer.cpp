@@ -32,26 +32,6 @@
 
 namespace Aqua{ namespace CalcServer{
 
-	/// Number of available platforms
-	cl_uint _num_platforms;
-	/// Array of platforms
-	cl_platform_id *_platforms;
-	/// Number of devices
-	cl_uint _num_devices;
-	/// Array of devices
-	cl_device_id *_devices;
-	/// OpenCL context
-	cl_context _context;
-	/// OpenCL command queue
-	cl_command_queue *_command_queues;
-	/// Selected platform
-	cl_platform_id _platform;
-	/// Selected device
-	cl_device_id _device;
-	/// Selected command queue
-	cl_command_queue _command_queue;
-
-
 CalcServer::CalcServer()
 	: _num_platforms(0)
 	, _platforms(NULL)
@@ -95,6 +75,9 @@ CalcServer::CalcServer()
         exit(EXIT_FAILURE);
     sprintf(val, "%g", 0.f);
     if(_vars->registerVariable("dt", "float", len, val, false))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%u", 0);
+    if(_vars->registerVariable("step", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", n);
     if(_vars->registerVariable("n", "unsigned int", len, val, false))
