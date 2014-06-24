@@ -57,22 +57,6 @@ public:
 	 */
 	bool mustPrintLog();
 
-	/** Get if the energy file must be updated.
-	 * @return true if the energy should be updated, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
-	 */
-	bool mustPrintEnergy();
-
-	/** Get if the fluid bounds file must be updated.
-	 * @return true if the bounds file should be updated, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
-	 */
-	bool mustPrintBounds();
-
 	/** Get if a general simulation output must be printed.
 	 * @return true if an output should be printed, false otherwise.
 	 * @remarks This method is assuming that when it is asked, the file will be
@@ -84,19 +68,19 @@ public:
 	/** Set the simulation step.
 	 * @param s Simulation step.
 	 */
-	void step(unsigned int s){_step = s;}
+	void step(unsigned int s){*_step = s;}
 	/** Get the simulation step.
 	 * @return Simulation step.
 	 */
-	unsigned int step(){return _step;}
+	unsigned int step(){return *_step;}
 	/** Set the simulation time.
 	 * @param t Simulation time.
 	 */
-	void time(float t){_time = t;}
+	void time(float t){*_time = t;}
 	/** Get the simulation time.
 	 * @return Simulation time.
 	 */
-	float time(){return _time;}
+	float time(){return *_time;}
 	/** Set the simulation frame.
 	 * @param frame Simulation frame.
 	 */
@@ -108,11 +92,11 @@ public:
 	/** Set the simulation time step.
 	 * @param dt Simulation time step.
 	 */
-	void dt(float dt){_dt = dt;}
+	void dt(float dt){*_dt = dt;}
 	/** Get the simulation time step.
 	 * @return Simulation time step.
 	 */
-	float dt(){return _dt;}
+	float dt(){return *_dt;}
 	/** Set the simulation starting frame.
 	 * @param start starting frame.
 	 */
@@ -166,9 +150,11 @@ public:
 
 private:
 	/// Actual step
-	unsigned int _step;
+	unsigned int *_step;
 	/// Actual time
-	float _time;
+	float *_time;
+	/// Time step
+	float *_dt;
 	/// Actual frame
 	unsigned int _frame;
 	/// Start frame
@@ -181,8 +167,6 @@ private:
 	int _steps_max;
 	/// Maximum number of frames into simulation (-1 if simulation don't stop by frames criteria)
 	int _frames_max;
-	/// Time step
-	float _dt;
 
 	/// Time when last log file printed
 	float _log_time;
@@ -192,24 +176,6 @@ private:
 	int _log_step;
 	/// IPF for Log files (-1 if Log file must not be printed)
 	int _log_ipf;
-
-	/// Time when last Energy file printed
-	float _en_time;
-	/// FPS for Energy files (-1 if Energy file must not be printed)
-	float _en_fps;
-	/// Step when last Energy file printed
-	int _en_step;
-	/// IPF for Energy files (-1 if Energy file must not be printed)
-	int _en_ipf;
-
-	/// Time when last Bounds file printed
-	float _bounds_time;
-	/// FPS for Bounds files (-1 if Bounds file must not be printed)
-	float _bounds_fps;
-	/// Step when last Bounds file printed
-	int _bounds_step;
-	/// IPF for Bounds files (-1 if Bounds file must not be printed)
-	int _bounds_ipf;
 
 	/// Time when last Output file printed
 	float _output_time;
