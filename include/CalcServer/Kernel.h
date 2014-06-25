@@ -19,92 +19,76 @@
 #ifndef KERNEL_H_INCLUDED
 #define KERNEL_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include OpenCL libraries
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
-// ----------------------------------------------------------------------------
-// Include auxiliar methods
-// ----------------------------------------------------------------------------
+#include <CalcServer/Tool.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Kernel Kernel.h CalcServer/Kernel.h
- * @brief All computational tools of CalcServer are inherited from this class,
- * becoming an OpenCL nomenclature natural extension.
+ * @brief A tool consisting in an OpenCL kernel execution. The variables used
+ * in the OpenCL kernel are automatically detected.
  */
-class Kernel
+class Kernel : public Aqua::CalcServer::Tool
 {
 public:
 	/** Constructor.
-	 * @param kernel_name Kernel name.
+	 * @param tool_name Tool name.
+	 * @param kernel_path Kernel path.
 	 */
-	Kernel(const char* kernel_name);
+	Kernel(const char* tool_name, const char* kernel_path);
 
 	/** Destructor
 	 */
 	virtual ~Kernel();
 
-	/** Returns the maximum allowed local work size for the selected device.
-	 * @param n Amount of data to solve. If 0 provided, CalcServer number of
-	 * particles will be selected.
-	 * @param queue Command queue where device is allocated. If it is NULL,
-	 * the first command queue present on the CalcServer will be selected.
-	 * @return The local work size.
-	 */
-	virtual size_t localWorkSize(unsigned int n=0,cl_command_queue queue=NULL);
+    /** Initialize the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setup();
 
-	/** Returns the appropiated global work size depending on the local work
-	 * size.
-	 * @param size Local work size.
-	 * @param n Amount of data to solve. If 0 is provided, CalcServer number
-	 * of particles will be selected.
-	 * @return Global work size.
-	 */
-	virtual size_t globalWorkSize(size_t size, unsigned int n=0);
+    /** Execute the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
-	/** Set the kernel name.
-	 * @param kernel_name Kernel name.
+	/** Set the kernel file path.
+	 * @param kernel_path kernel file path.
 	 */
-	void name(const char* kernel_name);
-	/** Get the kernel name.
-	 * @return Kernel name.
-	 */
-	const char* name(){return (const char*)_name;}
+	void path(const char* kernel_path);
 
-	#ifdef HAVE_GPUPROFILE
-	    /** Set the kernel time consumed.
-	     * @param t Kernel time consumed.
-	     */
-	    void profileTime(float t){_time = t;}
-	    /** Get the kernel time consumed.
-	     * @return Kernel time consumed.
-	     */
-	    float profileTime(){return _time;}
-	#endif
+	/** Get the kernel file path.
+	 * @return Tool kernel file path.
+	 */
+	const char* path(){return (const char*)_path;}
+
+    /** Get the work group size
+     * @return Work group size
+     */
+    size_t workGroupSize() const {return _work_group_size;}
+protected:
+    /** Compile the OpenCL program
+     * @param entry_point Program entry point method.
+     * @param flags Compiling additional flags.
+     * @param header Header to be append at the start of the source code.
+     * @return false if all gone right, true otherwise.
+     */
+    bool compile(const char* entry_point="main",
+                 const char* flags="",
+                 const char* header="");
 
 private:
-	/// Kernel name
-	char* _name;
-	#ifdef HAVE_GPUPROFILE
-	    /// Kernel real time consumed
-	    float _time;
-	#endif
+	/// Kernel path
+	char* _path;
+
+	/// OpenCL kernel
+	cl_kernel _kernel;
+
+	/// work group size
+	size_t _work_group_size;
 };
 
 }}  // namespace

@@ -21,9 +21,12 @@
 
 #include <CL/cl.h>
 
+#include <deque>
+
 #include <sphPrerequisites.h>
 #include <Variable.h>
 #include <Singleton.h>
+#include <CalcServer/Tool.h>
 
 #ifndef _ITEMS
 	#define _ITEMS  128
@@ -63,23 +66,6 @@ public:
 	 */
 	bool update();
 
-	/** Transfer the data from the computational device to the host.
-	 * @param dest Array where the data should be copied.
-	 * @param orig Computational device allocated data to copy.
-	 * @param size Size of the data to copy.
-	 * @param offset Offset into the array to start reading.
-	 * @return false if the data has been succesfully copied, true otherwise.
-	 */
-	bool getData(void *dest, cl_mem orig, size_t size, size_t offset=0);
-
-	/** Send data to a computational device array.
-	 * @param dest Identifier of the destination in the server.
-	 * @param orig Array of data to read.
-	 * @param size Size of the data to copy.
-	 * @return false if the data has been succesfully copied, true otherwise.
-	 */
-	bool sendData(cl_mem dest, void* orig, size_t size);
-
 	/** Setup the calculation server with the data recopilated by the host
 	 * during the initialization process.
 	 * @return false if the caluclation server has been succesfully setup,
@@ -112,6 +98,26 @@ public:
      */
     cl_command_queue command_queue() const{return _command_queue;}
 private:
+	/** Setup the OpenCL stuff.
+	 * @return false if the OpenCL environment has been succesfully built,
+	 * true otherwise
+	 */
+	bool setupOpenCL();
+	/** Prints all the available platforms and devices returned by OpenCL.
+	 * @return false if the OpenCL environment can be succesfully built,
+	 * true otherwise
+	 */
+	bool queryOpenCL();
+	/** Get a platform from the available ones.
+	 * @return false if a platform could be obtained, true otherwise
+	 */
+	bool setupPlatform();
+	/** Get the available devices in the selected platform.
+	 * @return false if the devices have been succesfully obtained, true
+	 * otherwise
+	 */
+	bool setupDevices();
+
 	/// Number of available platforms
 	cl_uint _num_platforms;
 	/// Array of platforms
@@ -134,25 +140,8 @@ private:
     /// User registered variables
     InputOutput::Variables *_vars;
 
-	/** Setup the OpenCL stuff.
-	 * @return false if the OpenCL environment has been succesfully built,
-	 * true otherwise
-	 */
-	bool setupOpenCL();
-	/** Prints all the available platforms and devices returned by OpenCL.
-	 * @return false if the OpenCL environment can be succesfully built,
-	 * true otherwise
-	 */
-	bool queryOpenCL();
-	/** Get a platform from the available ones.
-	 * @return false if a platform could be obtained, true otherwise
-	 */
-	bool setupPlatform();
-	/** Get the available devices in the selected platform.
-	 * @return false if the devices have been succesfully obtained, true
-	 * otherwise
-	 */
-	bool setupDevices();
+    /// User registered tools
+    std::deque<Tool*> _tools;
 };
 
 }}  // namespace

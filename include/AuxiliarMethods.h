@@ -62,7 +62,7 @@ int round(float n);
  * @param path Path of the kernel file.
  * @param entry_point Method into the kernel which will be called.
  * @param flags Compilation flags.
- * @param header Source code which will be inserted at the start of the readed
+ * @param header Source code which will be inserted at the start of the read
  * source code.
  * @return The work group size, 0 if errors happened.
  * @note Folder of the source file, and -cl-fast-relaxed-math flags will be
@@ -92,7 +92,7 @@ const char* getExtensionFromFilePath(const char* file_path);
 int isFile(const char* file_name);
 
 /** Load a file, and returns it as characters array.
- * @param source_code Readed file content.
+ * @param source_code Read file content, NULL to don't store the content.
  * @param file_name The file path.
  * @return Length of the source code array.
  * @note If SourceCode is a NULL pointer, only the length of the

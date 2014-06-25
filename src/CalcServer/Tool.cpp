@@ -22,20 +22,20 @@
 namespace Aqua{ namespace CalcServer{
 
 Tool::Tool(const char* tool_name)
-	: _name(0)
+	: _name(NULL)
 {
 	name(tool_name);
 }
 
 Tool::~Tool()
 {
-	if(_name) delete[] _name; _name=0;
+	if(_name) delete[] _name; _name=NULL;
 }
 
 void Tool::name(const char* tool_name)
 {
-	if(_name) delete[] _name; _name=0;
-	_name = new char[strlen(tool_name)+1];
+	if(_name) delete[] _name; _name=NULL;
+	_name = new char[strlen(tool_name) + 1];
 	strcpy(_name, tool_name);
 }
 
