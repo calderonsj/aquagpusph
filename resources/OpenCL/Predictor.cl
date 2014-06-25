@@ -23,85 +23,59 @@
 #endif
 
 /** Quasi-second order time integration predictor stage.
- * @param imove Fix particles flag.
- * @param ifluid Fluid identifiers.
- * @param pos Positions.
- * @param v Velocities.
- * @param f Accelerations.
- * @param dens Densities.
- * @param mass Masses.
- * @param drdt Density varaition rates.
- * @param posin Positions from the corrector stage.
- * @param vin Velocities from the corrector stage.
- * @param fin Accelerations from the corrector stage.
- * @param densin Densities from the corrector stage.
- * @param massin Masses from the corrector stage.
- * @param drdtin Density varaition rates from the corrector stage.
- * @param press Pressure from the corrector stage.
- * @param refd Reference density.
- * @param gamma Gamma.
- * @param N Number of particles.
- * @param t Simulation time.
- * @param dt Time step.
- * @param cs Sound speed.
- * @param g Gravity force.
- * @param minDens Minimum tolerated density value.
- * @param maxDens Maximum tolerated density value.
  */
-__kernel void Predictor(__global int* imove, __global int* ifluid,
-                        __global vec* pos, __global vec* v, __global vec* f,
-                        __global float* dens, __global float* mass,
-                        __global float* drdt, __global vec* posin,
-                        __global vec* vin, __global vec* fin,
-                        __global float* densin, __global float* massin,
-                        __global float* drdtin, __global float* press, 
-                        __constant float* refd, __constant float* gamma,
-                        unsigned int N, float t, float dt, float cs, vec g,
-                        float minDens, float maxDens)
+__kernel void main(__global int* imove,
+                   __global unsigned int* iset,
+                   __global vec* pos,
+                   __global vec* v,
+                   __global vec* dvdt,
+                   __global float* rho,
+                   __global float* drhodt,
+                   __global vec* pos_in,
+                   __global vec* v_in,
+                   __global vec* dvdt_in,
+                   __global float* rho_in,
+                   __global float* drhodt_in,
+                   __global float* mass, 
+                   __global float* press,
+                   __constant float* gamma,
+                   __constant float* refd,
+                   unsigned int N,
+                   float dt,
+                   float cs,
+                   vec g,
+                   float rho_min,
+                   float rho_max)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
-
-	// Stabilization time
-	if(t < 0.f){
-		if(imove[i] > 0){
-			vec dr = 0.5f * dt * dt * (fin[i] + g);
-			posin[i] += dr;
-		}
-		dt = 0.f;
-	}
 	// Time step modified by imove flag
 	float DT = dt;
 	if(imove[i] <= 0)
 		DT = 0.f;
 
 	// Predictor step for the fluid and walls
-	v[i] = vin[i] + DT * (fin[i] + g);
-	// mass[i]    = massin[i]*(1.f + dt*drdtin[i]/densin[i]);
-	#if __BOUNDARY__ == 1
+	v[i] = v_in[i] + DT * (dvdt_in[i] + g);
+	pos[i] = pos_in[i] + DT * v_in[i] + 0.5f * DT * DT * (dvdt_in[i] + g);
+
+	if(imove[i] != -1){
 		// Continuity equation must be solved for the fixed particles too
-		dens[i] = densin[i] + dt * drdtin[i];
-	#else
-		dens[i] = densin[i] + DT * drdtin[i];
-	#endif
-	if(dens[i] < minDens) dens[i] = minDens;
-	if(dens[i] > maxDens) dens[i] = maxDens;
-	pos[i] = posin[i] + DT * vin[i] + 0.5f * DT * DT * (fin[i] + g);
+        DT = dt;
+    }
+    rho[i] = rho_in[i] + DT * drhodt_in[i];
+	if(rho[i] < rho_min) rho[i] = rho_min;
+	if(rho[i] > rho_max) rho[i] = rho_max;
+
 	// Batchelor 1967
 	{
-		const float ddenf = dens[i] / refd[ifluid[i]];
-		const float prb = cs * cs * refd[ifluid[i]] / gamma[ifluid[i]];
-		press[i] = prb * (pow(ddenf, gamma[ifluid[i]]) - 1.f);
+		const float ddenf = rho[i] / refd[iset[i]];
+		const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
+		press[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
 	}
 	// Output variables reinitialization
-	f[i] = VEC_ZERO;
-	drdt[i] = 0.f;
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
+	dvdt[i] = VEC_ZERO;
+	drhodt[i] = 0.f;
 }

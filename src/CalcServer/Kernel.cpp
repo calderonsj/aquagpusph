@@ -65,11 +65,34 @@ bool Kernel::setup()
         return true;
     }
 
+    if(computeGlobalWorkSize()){
+        return true;
+    }
+
     return false;
 }
 
 bool Kernel::execute()
 {
+    cl_int err_code;
+	char msg[1024];
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    err_code = clEnqueueNDRangeKernel(C->command_queue(),
+                                      _kernel,
+                                      1,
+                                      NULL,
+                                      &_global_work_size,
+                                      &_work_group_size,
+                                      0,
+                                      NULL,
+                                      NULL);
+	if(err_code != CL_SUCCESS){
+        sprintf(msg, "Failure launching the tool \"%s\".\n", name());
+		S->addMessageF(3, msg);
+        S->printOpenCLError(err_code);
+	    return true;
+	}
     return false;
 }
 
@@ -490,6 +513,35 @@ bool Kernel::setVariables()
         _var_values.at(i) = var->get();
 	}
 	return false;
+}
+
+bool Kernel::computeGlobalWorkSize()
+{
+    char msg[1024];
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    if(!_work_group_size){
+        S->addMessageF(3, "Work group size must be greater than 0.\n");
+        return true;
+    }
+    InputOutput::Variables *vars = C->variables();
+    if(!vars->get("N")){
+        S->addMessageF(3, "The variable \"N\" is undefined.\n");
+        return true;
+    }
+    if(strcmp(vars->get("N")->type(), "unsigned int")){
+        sprintf(msg,
+                "It was expected a variable \"N\" of type \"%s\", but \"%s\" has been found.\n",
+                "unsigned int",
+                vars->get("N")->type());
+        S->addMessageF(3, msg);
+        return true;
+    }
+    unsigned int N = *(unsigned int *)vars->get("N")->get();
+
+    _global_work_size = (size_t)roundUp(N, (unsigned int)_work_group_size);
+
+    return false;
 }
 
 }}  // namespace

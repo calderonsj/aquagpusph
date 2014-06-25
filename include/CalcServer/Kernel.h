@@ -73,6 +73,11 @@ public:
      */
     size_t workGroupSize() const {return _work_group_size;}
 
+    /** Get the work group size
+     * @return Work group size
+     */
+    size_t globalWorkSize() const {return _global_work_size;}
+
 protected:
     /** Compile the OpenCL program
      * @param entry_point Program entry point method.
@@ -96,6 +101,11 @@ protected:
      */
     bool setVariables();
 
+    /** Compute the global work size
+     * @return false if all gone right, true otherwise.
+     */
+    bool computeGlobalWorkSize();
+
 private:
 	/// Kernel path
 	char* _path;
@@ -105,6 +115,9 @@ private:
 
 	/// work group size
 	size_t _work_group_size;
+
+	/// global work size
+	size_t _global_work_size;
 
     /// List of required variables
     std::deque<char*> _var_names;
