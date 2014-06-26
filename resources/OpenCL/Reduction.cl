@@ -22,21 +22,6 @@
     #include "types/3D.h"
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
 /** Reduction step. The objective of each step is obtain only one reduced value from each work group.
  * You can call this kernel recursively until only one work group will be computed.
  * @param input Input array where the reduced value is desired to be computed.

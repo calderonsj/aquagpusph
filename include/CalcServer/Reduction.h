@@ -21,6 +21,7 @@
 
 #include <deque>
 
+#include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -29,73 +30,91 @@ namespace Aqua{ namespace CalcServer{
  * @brief Array reduction tool. It could every prefix scan operation that you
  * want.
  */
-class Reduction : public Aqua::CalcServer::Kernel
+class Reduction : public Aqua::CalcServer::Tool
 {
 public:
 	/** Constructor.
-	 * @param input Input data memory object.
-	 * @param n Input data elements.
-	 * @param type The data type array.
-	 * @param null_val The value considered as the null one, i.e.
-	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
-	 * reduction, etc.
+	 * @param name Tool name.
+	 * @param input_name Variable to be reduced name.
+	 * @param output_name Variable where the reduced value will be stored.
 	 * @param operation The reduction operation. For instance:
 	 *   - "a += b;"
 	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+	 * @param null_val The value considered as the null one, i.e. INFINITY for
+	 * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
+	 * @note Some helpers are available for null_val:
+	 *   - VEC_ZERO: Zeroes vector.
+	 *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last component will be zero.
+	 *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last component will be INFINITY as well.
+	 *   - VEC_NEG_INFINITY: -VEC_INFINITY
+	 *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
 	 */
-	Reduction(cl_mem input,
-              unsigned int n,
-              const char* type,
-              const char* null_val,
-              const char* operation);
+	Reduction(const char *name,
+              const char *input_name,
+              const char *output_name,
+              const char* operation,
+              const char* null_val);
 
 	/** Destructor.
 	 */
 	~Reduction();
 
-	/** Compute the prefix scan.
-	 * @return Output memory object, NULL if error is detected.
-	 */
-	cl_mem execute();
+    /** Initialize the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setup();
 
-    /** Number of steps needed
+	/** Compute the reduction.
+	 * @return false if all gone right, true otherwise.
+	 */
+	bool execute();
+
+    /** Number of steps needed to compute the reduction
      * @return Number of steps needed.
      */
     unsigned int nSteps(){return _global_work_sizes.size();}
 
-    /** Return the memory object which stores the final result
-     * @return Memory object.
-     */
-    cl_mem resultMem(){return _mems.at(_mems.size() - 1);}
-
-    /** Change the data array input.
-     * @param New input data array.
-     * @return false if all gone right, true otherwise.
-     * @warning The new data array must be of the same size and type of the
-     * previously used one in the construction. Otherwise, please destroy this
-     * object and call the constructor again.
-     */
-    bool setInput(cl_mem input);
-
 private:
+    /** Get the input and output variables
+     * @return false if all gone right, true otherwise
+     */
+    bool variables();
+
 	/** Setup the OpenCL stuff
-	 * @param type The data type array.
-	 * @param null_val The value considered as the null one, i.e.
-	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
-	 * reduction, etc.
-	 * @param operation The reduction operation. For instance:
-	 *   - "a += b;"
-	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
 	 * @return false if all gone right, true otherwise.
 	 */
-	bool setupOpenCL(const char* type, const char* null_val, const char* operation);
+	bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
+    /** Compile the source code and generate the corresponding kernel
+     * @param source Source code to be compiled.
+     * @param local_work_size Desired local work size.
+     * @return Kernel instance, NULL if error happened.
+     */
+    cl_kernel compile(const char* source, size_t local_work_size);
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
+    /** Update the input looking for changed value.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setVariables();
+
+	/// Input variable name
+	char* _input_name;
+	/// Output variable name
+	char* _output_name;
+	/// Operation to be computed
+	char* _operation;
+	/// Considered null val
+	char* _null_val;
+
+    /// Input variable
+    InputOutput::ArrayVariable *_input_var;
+    /// Output variable
+    InputOutput::Variable *_output_var;
+
+    /// Set input variable
+    cl_mem *_input;
+
+	/// OpenCL kernels
 	std::deque<cl_kernel> _kernels;
 
     /// Global work sizes in each step
@@ -109,8 +128,8 @@ private:
 
     /// Memory objects
     std::deque<cl_mem> _mems;
-    /// Input memory object
-    cl_mem _input;
+
+
 };
 
 }}  // namespace
