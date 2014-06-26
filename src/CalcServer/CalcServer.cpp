@@ -142,6 +142,7 @@ CalcServer::CalcServer()
                     P->tools.at(i)->get("type"),
                     P->tools.at(i)->get("name"));
             S->addMessageF(3, msg);
+            exit(EXIT_FAILURE);
         }
     }
 
