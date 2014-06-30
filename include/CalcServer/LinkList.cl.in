@@ -29,7 +29,7 @@ __kernel void iHoc(__global unsigned int *ihoc,
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
-	if(i >= n_cells)
+	if(i >= n_cells.w)
 		return;
 
 	ihoc[i] = N;
@@ -70,7 +70,7 @@ __kernel void iCell(__global unsigned int *icell,
 		cell.x = (unsigned int)((pos[i].x - pos_min.x) * idist) + 3u;
 		cell.y = (unsigned int)((pos[i].y - pos_min.y) * idist) + 3u;
 		#ifdef HAVE_3D
-			cell.z = (unsigned int)((pos[i].z - posmin.z) * rdist) + 3u;
+			cell.z = (unsigned int)((pos[i].z - pos_min.z) * idist) + 3u;
 			cell_id = cell.x - 1u +
                       (cell.y - 1u) * n_cells.x +
                       (cell.z - 1u) * n_cells.x * n_cells.y;
@@ -114,3 +114,4 @@ __kernel void linkList(__global unsigned int *icell,
 		ihoc[c2] = i + 1;
 	}
 }
+
