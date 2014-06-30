@@ -41,8 +41,9 @@ public:
 	/** Constructor.
 	 * @param tool_name Tool name.
 	 * @param kernel_path Kernel path.
+	 * @param Number of threads to launch.
 	 */
-	Kernel(const char* tool_name, const char* kernel_path);
+	Kernel(const char* tool_name, const char* kernel_path, const char* n="N");
 
 	/** Destructor
 	 */
@@ -118,6 +119,9 @@ private:
 
 	/// global work size
 	size_t _global_work_size;
+
+    /// Number of threads expression
+    char* _n;
 
     /// List of required variables
     std::deque<char*> _var_names;
