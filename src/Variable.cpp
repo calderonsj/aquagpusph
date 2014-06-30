@@ -963,6 +963,7 @@ bool Variables::readComponents(const char* name,
     float val;
     unsigned int i;
     char msg[256];
+    bool error;
     ScreenManager *S = ScreenManager::singleton();
     if(n == 0){
         sprintf(msg,
@@ -994,7 +995,9 @@ bool Variables::readComponents(const char* name,
         }
         strcpy(strchr(aux, ','), "");
         remain = strchr(remain, ',') + 1;
-        val = tok.solve(aux);
+        val = tok.solve(aux, &error);
+        if(error)
+            return true;
         strcpy(nameaux, name);
         strcat(nameaux, extensions[i]);
         tok.registerVariable(nameaux, val);
@@ -1004,7 +1007,9 @@ bool Variables::readComponents(const char* name,
     strcpy(aux, remain);
     if(strchr(aux, ','))
         strcpy(strchr(aux, ','), "");
-    val = tok.solve(aux);
+    val = tok.solve(aux, &error);
+    if(error)
+        return true;
     strcpy(nameaux, name);
     if(n != 1)
         strcat(nameaux, extensions[n - 1]);

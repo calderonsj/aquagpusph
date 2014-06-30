@@ -70,9 +70,11 @@ public:
 
 	/** Solve the math expresion.
 	 * @param eq Math expression to solve.
-	 * @return Expression value, 0.f if failed (it will be reported).
+	 * @param error true if the expression evaluation has failed, false
+	 * otherwise. NULL to ignore it.
+	 * @return Expression value, 0.f if failed.
 	 */
-	float solve(const char* eq);
+	float solve(const char* eq, bool *error=NULL);
 
 protected:
     /** Register the default variables

@@ -668,7 +668,7 @@ public:
 
     /** Solve a string, interpreting the variables.
      * @param type_name Type of the output desired value.
-     * @param value Value text to evaluate.
+     * @param value Expression to evaluate.
      * @param data Allocated memory where the result should be stored.
      * @return false if all gone right, true otherwise.
      * @note typeToBytes(type) bytes should be allocated in data.
