@@ -16,8 +16,8 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REDUCTION_H_INCLUDED
-#define REDUCTION_H_INCLUDED
+#ifndef SET_H_INCLUDED
+#define SET_H_INCLUDED
 
 #include <deque>
 
@@ -26,23 +26,17 @@
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class Reduction Reduction.h CalcServer/Reduction.h
- * @brief Array reduction tool. It could every prefix scan operation that you
- * want.
+/** @class Set Set.h CalcServer/Set.h
+ * @brief Set all the components of an array with the desired value.
  */
-class Reduction : public Aqua::CalcServer::Tool
+class Set : public Aqua::CalcServer::Tool
 {
 public:
 	/** Constructor.
 	 * @param name Tool name.
-	 * @param input_name Variable to be reduced name.
-	 * @param output_name Variable where the reduced value will be stored.
-	 * @param operation The reduction operation. For instance:
-	 *   - "a += b;"
-	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
-	 * @param null_val The value considered as the null one, i.e. INFINITY for
-	 * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
-	 * @note Some helpers are available for null_val:
+	 * @param var_name Variable to set.
+	 * @param value Value to set.
+	 * @note Some helpers are available for value:
 	 *   - VEC_ZERO: Zeroes vector.
 	 *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
 	 *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component will be one as well.
@@ -51,15 +45,11 @@ public:
 	 *   - VEC_NEG_INFINITY: -VEC_INFINITY
 	 *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
 	 */
-	Reduction(const char *name,
-              const char *input_name,
-              const char *output_name,
-              const char* operation,
-              const char* null_val);
+	Set(const char *name, const char *var_name, const char *value);
 
 	/** Destructor.
 	 */
-	~Reduction();
+	~Set();
 
     /** Initialize the tool.
      * @return false if all gone right, true otherwise.
@@ -71,16 +61,11 @@ public:
 	 */
 	bool execute();
 
-    /** Number of steps needed to compute the reduction
-     * @return Number of steps needed.
-     */
-    unsigned int nSteps(){return _global_work_sizes.size();}
-
 private:
-    /** Get the input and output variables
+    /** Get the input variable
      * @return false if all gone right, true otherwise
      */
-    bool variables();
+    bool variable();
 
 	/** Setup the OpenCL stuff
 	 * @return false if all gone right, true otherwise.
@@ -89,10 +74,9 @@ private:
 
     /** Compile the source code and generate the corresponding kernel
      * @param source Source code to be compiled.
-     * @param local_work_size Desired local work size.
      * @return Kernel instance, NULL if error happened.
      */
-    cl_kernel compile(const char* source, size_t local_work_size);
+    cl_kernel compile(const char* source);
 
     /** Update the input looking for changed value.
      * @return false if all gone right, true otherwise.
@@ -100,38 +84,27 @@ private:
     bool setVariables();
 
 	/// Input variable name
-	char* _input_name;
+	char* _var_name;
 	/// Output variable name
-	char* _output_name;
-	/// Operation to be computed
-	char* _operation;
-	/// Considered null val
-	char* _null_val;
+	char* _value;
 
     /// Input variable
-    InputOutput::ArrayVariable *_input_var;
-    /// Output variable
-    InputOutput::Variable *_output_var;
+    InputOutput::ArrayVariable *_var;
 
-    /// Set input variable
+    /// Memory object sent
     cl_mem *_input;
 
-	/// OpenCL kernels
-	std::deque<cl_kernel> _kernels;
+	/// OpenCL kernel
+	cl_kernel _kernel;
 
     /// Global work sizes in each step
-    std::deque<size_t> _global_work_sizes;
+    size_t _global_work_size;
     /// Local work sizes in each step
-    std::deque<size_t> _local_work_sizes;
-    /// Number of work groups in each step
-    std::deque<size_t> _number_groups;
-    /// Number of input elements for each step
-    std::deque<size_t> _n;
-
-    /// Memory objects
-    std::deque<cl_mem> _mems;
+    size_t _local_work_size;
+    /// Number of elements
+    unsigned int _n;
 };
 
 }}  // namespace
 
-#endif // REDUCTION_H_INCLUDED
+#endif // SET_H_INCLUDED

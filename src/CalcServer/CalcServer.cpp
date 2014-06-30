@@ -31,6 +31,7 @@
 #include <ScreenManager.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/Reduction.h>
+#include <CalcServer/Set.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -137,6 +138,12 @@ CalcServer::CalcServer()
                                       P->tools.at(i)->get("path"));
             _tools.push_back(tool);
         }
+        else if(!strcmp(P->tools.at(i)->get("type"), "set")){
+            Set *tool = new Set(P->tools.at(i)->get("name"),
+                                P->tools.at(i)->get("in"),
+                                P->tools.at(i)->get("value"));
+            _tools.push_back(tool);
+        }
         else if(!strcmp(P->tools.at(i)->get("type"), "reduction")){
             Reduction *tool = new Reduction(P->tools.at(i)->get("name"),
                                             P->tools.at(i)->get("in"),
@@ -199,6 +206,15 @@ bool CalcServer::update()
                 return true;
             }
         }
+
+        InputOutput::FloatVariable *var = (InputOutput::FloatVariable *)_vars->get("pos_min");
+        vec pos_min = *(vec*)var->get();
+        var = (InputOutput::FloatVariable *)_vars->get("pos_max");
+        vec pos_max = *(vec*)var->get();
+
+        printf("min: %g, %g, %g, %g\n", pos_min.x, pos_min.y, pos_min.z, pos_min.w);
+        printf("max: %g, %g, %g, %g\n", pos_max.x, pos_max.y, pos_max.z, pos_max.w);
+
 		// Key events
 		while(isKeyPressed()){
 	        if(getchar() == 'c'){
@@ -208,7 +224,7 @@ bool CalcServer::update()
 		}
 
 		/// @todo let the tool to continue computing
-		return true;
+		return false;
 	}
 	return false;
 }
