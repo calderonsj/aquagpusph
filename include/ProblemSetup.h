@@ -169,8 +169,6 @@ public:
         std::deque<char*> lengths;
         /// Values
         std::deque<char*> values;
-        /// Save flags
-        std::deque<bool> saves;
 
         /** Add a new variable. It can be repeated.
          * @param name Name of the variable.
@@ -185,8 +183,7 @@ public:
         void registerVariable(const char* name,
                               const char* type,
                               const char* length,
-                              const char* value,
-                              const bool save);
+                              const char* value);
         /** Remove the stored variables.
          */
         void destroy();
