@@ -22,44 +22,46 @@
 
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
-#include <CalcServer/Set.h>
+#include <CalcServer/Copy.h>
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{
 
-#include "CalcServer/Set.hcl"
-#include "CalcServer/Set.cl"
-const char* SET_INC = (const char*)Set_hcl_in;
-unsigned int SET_INC_LEN = Set_hcl_in_len;
-const char* SET_SRC = (const char*)Set_cl_in;
-unsigned int SET_SRC_LEN = Set_cl_in_len;
+#include "CalcServer/Copy.hcl"
+#include "CalcServer/Copy.cl"
+const char* COPY_INC = (const char*)Copy_hcl_in;
+unsigned int COPY_INC_LEN = Copy_hcl_in_len;
+const char* COPY_SRC = (const char*)Copy_cl_in;
+unsigned int COPY_SRC_LEN = Copy_cl_in_len;
 
 
-Set::Set(const char *name, const char *var_name, const char *value)
+Copy::Copy(const char *name, const char *input_name, const char *output_name)
 	: Tool(name)
-	, _var_name(NULL)
-	, _value(NULL)
-	, _var(NULL)
+	, _input_name(NULL)
+	, _output_name(NULL)
+	, _input_var(NULL)
+	, _output_var(NULL)
 	, _input(NULL)
+	, _output(NULL)
 	, _kernel(NULL)
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, _n(0)
 {
-    _var_name = new char[strlen(var_name) + 1];
-    strcpy(_var_name, var_name);
-    _value = new char[strlen(value) + 1];
-    strcpy(_value, value);
+    _input_name = new char[strlen(input_name) + 1];
+    strcpy(_input_name, input_name);
+    _output_name = new char[strlen(output_name) + 1];
+    strcpy(_output_name, output_name);
 }
 
-Set::~Set()
+Copy::~Copy()
 {
-    if(_var_name) delete[] _var_name; _var_name=NULL;
-    if(_value) delete[] _value; _value=NULL;
+    if(_input_name) delete[] _input_name; _input_name=NULL;
+    if(_output_name) delete[] _output_name; _output_name=NULL;
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
 }
 
-bool Set::setup()
+bool Copy::setup()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -71,19 +73,20 @@ bool Set::setup()
             name());
     S->addMessageF(1, msg);
 
-    if(variable()){
+    if(variables()){
         return true;
     }
 
-    _input = (cl_mem*)_var->get();
-    _n = _var->size() / vars->typeToBytes(_var->type());
+    _input = (cl_mem*)_input_var->get();
+    _output = (cl_mem*)_input_var->get();
+    _n = _input_var->size() / vars->typeToBytes(_input_var->type());
     if(setupOpenCL())
         return true;
     return false;
 }
 
 
-bool Set::execute()
+bool Copy::execute()
 {
     unsigned int i;
     cl_int err_code;
@@ -115,33 +118,87 @@ bool Set::execute()
 	return false;
 }
 
-bool Set::variable()
+bool Copy::variables()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_var_name)){
+    if(!vars->get(_input_name)){
         sprintf(msg,
-                "The tool \"%s\" is using the undeclared variable \"%s\".\n",
+                "The tool \"%s\" has received undeclared variable \"%s\" as input.\n",
                 name(),
-                _var_name);
+                _input_name);
         S->addMessageF(3, msg);
         return true;
     }
-    if(!strchr(vars->get(_var_name)->type(), '*')){
+    if(!strchr(vars->get(_input_name)->type(), '*')){
         sprintf(msg,
-                "The tool \"%s\" has received the scalar variable \"%s\".\n",
+                "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
-                _var_name);
+                _input_name);
         S->addMessageF(3, msg);
         return true;
     }
-    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
+    size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
+    if(!vars->get(_output_name)){
+        sprintf(msg,
+                "The tool \"%s\" has received undeclared variable \"%s\" as output.\n",
+                name(),
+                _output_name);
+        S->addMessageF(3, msg);
+        return true;
+    }
+    if(!strchr(vars->get(_output_name)->type(), '*')){
+        sprintf(msg,
+                "The tool \"%s\" has received the scalar variable \"%s\" as output.\n",
+                name(),
+                _output_name);
+        S->addMessageF(3, msg);
+        return true;
+    }
+    _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
+    size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
+    if(!vars->isSameType(_input_var->type(), _output_var->type())){
+        sprintf(msg,
+                "The input and output types mismatch for the tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
+        sprintf(msg,
+                "\tInput variable \"%s\" is of type \"%s\".\n",
+                _input_var->name(),
+                _input_var->type());
+        S->addMessageF(0, msg);
+        sprintf(msg,
+                "\tOutput variable \"%s\" is of type \"%s\".\n",
+                _output_var->name(),
+                _output_var->type());
+        S->addMessageF(0, msg);
+        return true;
+    }
+    if(n_in != n_out){
+        sprintf(msg,
+                "The input and output lengths mismatch for the tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
+        sprintf(msg,
+                "\tInput variable \"%s\" has a length n=%lu.\n",
+                _input_var->name(),
+                n_in);
+        S->addMessageF(0, msg);
+        sprintf(msg,
+                "\tOutput variable \"%s\" has a length n=%lu.\n",
+                _output_var->name(),
+                n_out);
+        S->addMessageF(0, msg);
+        return true;
+    }
+
     return false;
 }
 
-bool Set::setupOpenCL()
+bool Copy::setupOpenCL()
 {
     cl_int err_code;
     cl_kernel kernel;
@@ -151,16 +208,15 @@ bool Set::setupOpenCL()
     InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
-    char header[SET_INC_LEN + strlen(_value) + 128];
+    char header[COPY_INC_LEN + 128];
     strcpy(header, "");
-    strncat(header, SET_INC, SET_INC_LEN);
+    strncat(header, COPY_INC, COPY_INC_LEN);
     strcat(header, "");
-    sprintf(header, "%s #define VALUE %s\n", header, _value);
 
     // Setup the complete source code
-    char source[strlen(header) + strlen(SET_SRC) + 1];
+    char source[strlen(header) + strlen(COPY_SRC) + 1];
     strcpy(source, header);
-    strncat(source, SET_SRC, SET_SRC_LEN);
+    strncat(source, COPY_SRC, COPY_SRC_LEN);
     strcat(source, "");
 
     // Starts a dummy kernel in order to study the local size that can be used
@@ -181,7 +237,7 @@ bool Set::setupOpenCL()
 	    return true;
 	}
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "Set cannot be performed.\n");
+        S->addMessageF(3, "Copy cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _local_work_size,
@@ -194,15 +250,24 @@ bool Set::setupOpenCL()
     _kernel = kernel;
     err_code = clSetKernelArg(kernel,
                               0,
-                              _var->typesize(),
-                              _var->get());
+                              _input_var->typesize(),
+                              _input_var->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the array argument\n");
+        S->addMessageF(3, "Failure sending the input array argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
     err_code = clSetKernelArg(kernel,
                               1,
+                              _output_var->typesize(),
+                              _output_var->get());
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure sending the output array argument\n");
+        S->printOpenCLError(err_code);
+        return true;
+    }
+    err_code = clSetKernelArg(kernel,
+                              2,
                               sizeof(unsigned int),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
@@ -214,7 +279,7 @@ bool Set::setupOpenCL()
 	return false;
 }
 
-cl_kernel Set::compile(const char* source)
+cl_kernel Copy::compile(const char* source)
 {
     cl_int err_code;
     cl_program program;
@@ -226,7 +291,7 @@ cl_kernel Set::compile(const char* source)
     char flags[512];
     sprintf(flags,
             "-DT=%s",
-            _var->type());
+            _input_var->type());
     strcpy(strchr(flags, '*'), "");
 	#ifdef AQUA_DEBUG
 	    strcat(flags, " -g -DDEBUG ");
@@ -287,31 +352,47 @@ cl_kernel Set::compile(const char* source)
 	return kernel;
 }
 
-bool Set::setVariables()
+bool Copy::setVariables()
 {
     char msg[1024];
     cl_int err_code;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    if((void*)_input == _var->get()){
-        return false;
+    if((void*)_input != _input_var->get()){
+        err_code = clSetKernelArg(_kernel,
+                                  0,
+                                  _input_var->typesize(),
+                                  _input_var->get());
+        if(err_code != CL_SUCCESS) {
+            sprintf(msg,
+                    "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
+                    _input_var->name(),
+                    name());
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+
+        _input = (cl_mem *)_input_var->get();
     }
 
-    err_code = clSetKernelArg(_kernel,
-                              0,
-                              _var->typesize(),
-                              _var->get());
-    if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
-                _var->name(),
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
-    }
+    if((void*)_output != _output_var->get()){
+        err_code = clSetKernelArg(_kernel,
+                                  1,
+                                  _output_var->typesize(),
+                                  _output_var->get());
+        if(err_code != CL_SUCCESS) {
+            sprintf(msg,
+                    "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
+                    _output_var->name(),
+                    name());
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
 
-    _input = (cl_mem *)_var->get();
+        _output = (cl_mem *)_output_var->get();
+    }
 
 	return false;
 }

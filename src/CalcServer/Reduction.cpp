@@ -103,7 +103,7 @@ bool Reduction::setup()
     size_t n = _input_var->size() / vars->typeToBytes(_input_var->type());
     _n.push_back(n);
     if(setupOpenCL())
-        exit(EXIT_FAILURE);
+        return true;
     return false;
 }
 
