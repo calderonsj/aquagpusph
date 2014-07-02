@@ -432,7 +432,6 @@ bool Kernel::variables(const char* entry_point)
 
     unsigned int i;
 	for(i = 0; i < _var_names.size(); i++){
-        _var_sizes.push_back(0);
         _var_values.push_back(NULL);
 	}
 
@@ -495,8 +494,8 @@ bool Kernel::setVariables()
             return true;
         }
         InputOutput::Variable *var = vars->get(_var_names.at(i));
-        if((_var_sizes.at(i) == var->typesize()) &&
-           (_var_values.at(i) == var->get())){
+        if((_var_values.at(i) == var->get()) &&
+           strchr(var->type(), '*')){
             // The variable still being valid
             continue;
         }
@@ -513,7 +512,6 @@ bool Kernel::setVariables()
             S->printOpenCLError(err_code);
             return true;
         }
-        _var_sizes.at(i) = var->typesize();
         _var_values.at(i) = var->get();
 	}
 	return false;
