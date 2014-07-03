@@ -111,6 +111,8 @@ CalcServer::CalcServer()
     // Register default arrays
     strcpy(val, "");
     sprintf(len, "%u", N);
+    if(_vars->registerVariable("id", "unsigned int*", len, val))
+        exit(EXIT_FAILURE);
     if(_vars->registerVariable("pos", "vec*", len, val))
         exit(EXIT_FAILURE);
     if(_vars->registerVariable("iset", "unsigned int*", len, val))
@@ -166,7 +168,8 @@ CalcServer::CalcServer()
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "link-list")){
-            LinkList *tool = new LinkList(P->tools.at(i)->get("name"));
+            LinkList *tool = new LinkList(P->tools.at(i)->get("name"),
+                                          P->tools.at(i)->get("in"));
             _tools.push_back(tool);
         }
         else{
