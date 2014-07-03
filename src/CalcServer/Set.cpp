@@ -224,9 +224,16 @@ cl_kernel Set::compile(const char* source)
 	CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    sprintf(flags,
-            "-DT=%s",
-            _var->type());
+    if(!strcmp(_var->type(), "unsigned int*")){
+        sprintf(flags,
+                "-DT=%s",
+                "uint*");
+    }
+    else{
+        sprintf(flags,
+                "-DT=%s",
+                _var->type());
+    }
     strcpy(strchr(flags, '*'), "");
 	#ifdef AQUA_DEBUG
 	    strcat(flags, " -g -DDEBUG ");
