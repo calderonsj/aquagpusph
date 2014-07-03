@@ -227,14 +227,6 @@ bool CalcServer::update()
             }
         }
 
-        InputOutput::FloatVariable *var = (InputOutput::FloatVariable *)_vars->get("pos_min");
-        vec pos_min = *(vec*)var->get();
-        var = (InputOutput::FloatVariable *)_vars->get("pos_max");
-        vec pos_max = *(vec*)var->get();
-
-        printf("min: %g, %g, %g, %g\n", pos_min.x, pos_min.y, pos_min.z, pos_min.w);
-        printf("max: %g, %g, %g, %g\n", pos_max.x, pos_max.y, pos_max.z, pos_max.w);
-
 		// Key events
 		while(isKeyPressed()){
 	        if(getchar() == 'c'){

@@ -16,19 +16,26 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef vec
-    #define vec float4
-#endif
+#define unit unsigned int
+#define vec2 float2
+#define vec3 float3
+#define vec4 float4
+#define ivec2 int2
+#define ivec3 int3
+#define ivec4 int4
+#define uivec2 uint2
+#define uivec3 uint3
+#define uivec4 uint4
 
-#ifndef ivec
-    #define ivec int4
-#endif
+#define vec float4
+#define ivec int4
+#define uivec uint4
+#define VEC_ZERO (float4)(0.f, 0.f, 0.f, 0.f)
+#define VEC_ONE (float4)(1.f, 1.f, 1.f, 0.f)
+#define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
+#define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
+#define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
 
-#ifndef uivec
-    #define uivec uint4
-#endif
-
-#ifndef VEC_ZERO
-    #define VEC_ZERO (float4)(0.f,0.f,0.f,0.f)
-#endif
+#define VEC_NEG_INFINITY (-VEC_INFINITY)
+#define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
