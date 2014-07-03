@@ -42,8 +42,10 @@
 __kernel void main(const __global uint* iset, const __global int* imove,
                    const __global vec* pos, const __global vec* v,
                    const __global float* rho, const __global float* m,
-                   const __global float* p, __constant float* visc_dyn,
-                   __global vec* dvdt, __global float* drhodt,
+                   const __global float* p, __constant float* refd,
+
+                   __global vec* grad_p, __global vec* lap_u,
+                   __global float* div_u, __global float* lap_p,
                    __global float* shepard,
                     // Link-list data
                     __global uint *icell, __global uint *ihoc,
@@ -64,7 +66,7 @@ __kernel void main(const __global uint* iset, const __global int* imove,
     const vec v_i = v[i];
     const float p_i = p[i];
     const float rho_i = rho[i];
-    const float visc_dyn_i = visc_dyn[iset[i]];
+    const float refd_i = refd[iset[i]];
 
     const float prfac_i = p_i / (rho_i * rho_i);
 
@@ -78,19 +80,27 @@ __kernel void main(const __global uint* iset, const __global int* imove,
 
 	// Initialize the output
     #ifndef LOCAL_MEM_SIZE
-	    #define _DVDT_ dvdt[i]
-	    #define _DRDT_ drhodt[i]
+	    #define _GRADP_ grad_p[i]
+	    #define _LAPU_ lap_u[it]
+	    #define _DIVU_ div_u[i]
+	    #define _LAPP_ lap_p[i]
     	#define _SHEPARD_ shepard[i]
     #else
-	    #define _DVDT_ dvdt_l[it]
-	    #define _DRDT_ drhodt_l[it]
+	    #define _GRADP_ grad_p_l[it]
+	    #define _LAPU_ lap_u_l[it]
+	    #define _DIVU_ div_u_l[i]
+	    #define _LAPP_ lap_p_l[it]
 	    #define _SHEPARD_ shepard_l[it]
-        __local vec dvdt_l[LOCAL_MEM_SIZE];
-        __local float drhodt_l[LOCAL_MEM_SIZE];
+        __local vec grad_p_l[LOCAL_MEM_SIZE];
+        __local vec lap_u_l[LOCAL_MEM_SIZE];
+        __local float div_u_l[LOCAL_MEM_SIZE];
+        __local float lap_p_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
     #endif
-	_DVDT_ = VEC_ZERO;
-	_DRDT_ = 0.f;
+	_GRADP_ = VEC_ZERO;
+	_LAPU_ = VEC_ZERO;
+	_DIVU_ = 0.f;
+	_LAPP_ = 0.f;
 	_SHEPARD_ = 0.f;
 
 	// Loop over neighbour particles
@@ -190,8 +200,10 @@ __kernel void main(const __global uint* iset, const __global int* imove,
     }
 
 	#ifdef LOCAL_MEM_SIZE
-		dvdt[i] = _DVDT_;
-		drhodt[i] = _DRDT_;
+		grad_p[i] = _GRADP_;
+		lap_u[i] = _LAPU_;
+		div_u[i] = _DIVU_;
+		lap_p[i] = _LAPP_;
 		shepard[i] = _SHEPARD_;
 	#endif
 

@@ -50,9 +50,9 @@ float kernelF(float q)
 	float wcona = 1.25f*iM_PI;							// 1.25 = 6/4
 	float wconb = 0.25f*iM_PI;							// 0.25 = 1/4
 	if(q <= 1.f)
-		return wcona*(-2.f + 1.5f*q);
+		return wcona*(2.f - 1.5f * q);
 	else if (q < 2.f)
-		return -3.f*wconb*(2.f-q)*(2.f-q)/q;
+		return 3.f * wconb * (2.f - q) * (2.f - q) / q;
 	return 0.f;
 }
 

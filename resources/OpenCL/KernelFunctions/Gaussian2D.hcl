@@ -41,7 +41,7 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	return -2.f*iM_PI*exp(-q*q);
+	return 2.f*iM_PI*exp(-q*q);
 }
 
 #endif	// _KERNEL_H_INCLUDED_

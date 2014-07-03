@@ -41,7 +41,7 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	return -0.359174244f*exp(-q*q);		// 0.179587122f = 1/(pi^(3/2))
+	return 0.359174244f*exp(-q*q);		// 0.179587122f = 1/(pi^(3/2))
 }
 
 #endif	// _KERNEL_H_INCLUDED_
