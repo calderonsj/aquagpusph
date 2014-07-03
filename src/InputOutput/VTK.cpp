@@ -184,7 +184,7 @@ bool VTK::load()
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y - bounds().x){
+        if(len < bounds().y){
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i));
@@ -326,7 +326,6 @@ bool VTK::save()
     }
 
     // Create storage arrays
-    std::deque<void*> data;
     std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
     Variables* vars = C->variables();
     for(i = 0; i < fields.size(); i++){
@@ -347,39 +346,12 @@ bool VTK::save()
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y - bounds().x){
+        if(len < bounds().y){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;
-        }
-        void *store = malloc(typesize * (bounds().y - bounds().x));
-        if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
-        }
-        data.push_back(store);
-
-        cl_mem mem = *(cl_mem*)var->get();
-        err_code = clEnqueueReadBuffer(C->command_queue(),
-                                       mem,
-                                       CL_TRUE,
-                                       typesize * bounds().x,
-                                       typesize * (bounds().y - bounds().x),
-                                       store,
-                                       0,
-                                       NULL,
-                                       NULL);
-        if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure receiving variable \"%s\" from server.\n",
-                    fields.at(i));
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
         }
 
         unsigned int n_components = vars->typeToN(var->type());
@@ -407,6 +379,11 @@ bool VTK::save()
             vtk_array->SetName(fields.at(i));
             vtk_arrays.push_back(vtk_array);
         }
+    }
+
+    std::deque<void*> data = download(fields);
+    if(!data.size()){
+        return true;
     }
 
     // Fill the VTK data arrays
