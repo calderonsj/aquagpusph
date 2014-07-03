@@ -39,55 +39,16 @@
 	#endif
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
-#ifndef uint
-	#define uint unsigned int
-#endif
-
-/** Compute the rates of variation due to the fluid (fixed particles will be
- * included here). During this stage some other operations are performed as
- * well, like the values interpolation in the boundaries (for DeLeffe boundary
- * conditions), the sensors meassurement, or the Shepard factor computation.
- * @param ifluid Fluid identifiers.
- * @param imove Moving flags.
- * @param pos Positions.
- * @param v Velocities.
- * @param dens Densities.
- * @param mass Masses.
- * @param press Pressures.
- * @param viscdyn Dynamic viscosities (one per fluid)
- * @param f Acceleration.
- * @param drdt Rates of change of the density.
- * @param drdt_F Rates of change of the density due to the diffusive term.
- * @param shepard Shepard term (0th correction).
- * @param icell Cell where each particle is located.
- * @param ihoc Head particle of chain of each cell.
- * @param N Number of particles & sensors.
- * @param lvec Number of cells at each direction.
- * @param grav Gravity acceleration.
- */
-__kernel void Rates(__global int* ifluid, __global int* imove,
-                    __global vec* pos, __global vec* v, __global float* dens,
-                    __global float* mass, __global float* press,
-                    __constant float* viscdyn,
-                    __global vec* f, __global float* drdt,
-                    __global float* drdt_F, __global float* shepard,
+__kernel void main(const __global uint* iset, const __global int* imove,
+                   const __global vec* pos, const __global vec* v,
+                   const __global float* rho, const __global float* m,
+                   const __global float* p, __constant float* visc_dyn,
+                   __global vec* dvdt, __global float* drhodt,
+                   __global float* shepard,
                     // Link-list data
                     __global uint *icell, __global uint *ihoc,
                     // Simulation data
-                    uint N, uivec lvec, vec grav
-                    #ifdef __DELTA_SPH__
-                        // Continuity equation diffusive term data
-                        , __constant float* refd, __constant float* delta
-                        , float dt, float cs
-                    #endif
-                    )
+                    uint N, uivec4 n_cells, float h, float support, vec g)
 {
 	const uint i = get_global_id(0);
 	const uint it = get_local_id(0);
@@ -101,15 +62,11 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
     const int move_i = imove[i];
     const vec pos_i = pos[i];
     const vec v_i = v[i];
-    const float press_i = press[i];
-    const float dens_i = dens[i];
-    const float viscdyn_i = viscdyn[ifluid[i]];
-	#ifdef __DELTA_SPH__
-        const float delta_i = delta[ifluid[i]];
-        const float refd_i = refd[ifluid[i]];
-	#endif
+    const float p_i = p[i];
+    const float rho_i = rho[i];
+    const float visc_dyn_i = visc_dyn[iset[i]];
 
-    const float prfac_i = press_i / (dens_i * dens_i);
+    const float prfac_i = p_i / (rho_i * rho_i);
 
 	#ifndef HAVE_3D
 		const float conw = 1.f/(h*h);
@@ -121,23 +78,19 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
 
 	// Initialize the output
     #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[i]
-	    #define _DRDT_ drdt[i]
-    	#define _DRDT_F_ drdt_F[i]
+	    #define _DVDT_ dvdt[i]
+	    #define _DRDT_ drhodt[i]
     	#define _SHEPARD_ shepard[i]
     #else
-	    #define _F_ f_l[it]
-	    #define _DRDT_ drdt_l[it]
-	    #define _DRDT_F_ drdt_F_l[it]
+	    #define _DVDT_ dvdt_l[it]
+	    #define _DRDT_ drhodt_l[it]
 	    #define _SHEPARD_ shepard_l[it]
-        __local vec f_l[LOCAL_MEM_SIZE];
-        __local float drdt_l[LOCAL_MEM_SIZE];
-        __local float drdt_F_l[LOCAL_MEM_SIZE];
+        __local vec dvdt_l[LOCAL_MEM_SIZE];
+        __local float drhodt_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
     #endif
-	_F_       = VEC_ZERO;
-	_DRDT_    = 0.f;
-	_DRDT_F_  = 0.f;
+	_DVDT_ = VEC_ZERO;
+	_DRDT_ = 0.f;
 	_SHEPARD_ = 0.f;
 
 	// Loop over neighbour particles
@@ -148,34 +101,15 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
         // ==========================================
         j = i + 1;
 		while((j < N) && (icell[j] == c_i) ) {
-			// Sensor specific computation
-			if(!move_i){
+			if(move_i == 0){
 				#include "RatesSensors.hcl"
 			}
-			else{
-				#if __BOUNDARY__==0
-					// ElasticBounce boundary condition
-					if(move_i<0){
-						#include "RatesBounds.hcl"
-					}
-					else{
-						#include "Rates.hcl"
-					}
-				#elif __BOUNDARY__==1
-					// Fix particles
-					#include "Rates.hcl"
-				#elif __BOUNDARY__==2
-					// DeLeffe boundary condition
-					if(move_i<0){
-						#include "RatesBounds.hcl"
-					}
-					else{
-						#include "Rates.hcl"
-					}
-				#else
-					#error Unknow boundary condition
-				#endif
-			}
+			else if((move_i == 1) || (move_i == -1)){
+				#include "Rates.hcl"
+            }
+            else{
+				#include "RatesBounds.hcl"
+            }
 			j++;
 		}
 
@@ -187,120 +121,77 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
 				case 0: c_j = c_i + 0; break;
 				case 1: c_j = c_i + 1; break;
 				case 2: c_j = c_i - 1; break;
-				case 3: c_j = c_i + lvec.x; break;
-				case 4: c_j = c_i + lvec.x + 1; break;
-				case 5: c_j = c_i + lvec.x - 1; break;
-				case 6: c_j = c_i - lvec.x; break;
-				case 7: c_j = c_i - lvec.x + 1; break;
-				case 8: c_j = c_i - lvec.x - 1; break;
+				case 3: c_j = c_i + n_cells.x; break;
+				case 4: c_j = c_i + n_cells.x + 1; break;
+				case 5: c_j = c_i + n_cells.x - 1; break;
+				case 6: c_j = c_i - n_cells.x; break;
+				case 7: c_j = c_i - n_cells.x + 1; break;
+				case 8: c_j = c_i - n_cells.x - 1; break;
 				#ifdef HAVE_3D
-					case 9 : c_j = c_i + 0          - lvec.x*lvec.y; break;
-					case 10: c_j = c_i + 1          - lvec.x*lvec.y; break;
-					case 11: c_j = c_i - 1          - lvec.x*lvec.y; break;
-					case 12: c_j = c_i + lvec.x     - lvec.x*lvec.y; break;
-					case 13: c_j = c_i + lvec.x + 1 - lvec.x*lvec.y; break;
-					case 14: c_j = c_i + lvec.x - 1 - lvec.x*lvec.y; break;
-					case 15: c_j = c_i - lvec.x     - lvec.x*lvec.y; break;
-					case 16: c_j = c_i - lvec.x + 1 - lvec.x*lvec.y; break;
-					case 17: c_j = c_i - lvec.x - 1 - lvec.x*lvec.y; break;
+					case 9 : c_j = c_i + 0             - n_cells.x*n_cells.y; break;
+					case 10: c_j = c_i + 1             - n_cells.x*n_cells.y; break;
+					case 11: c_j = c_i - 1             - n_cells.x*n_cells.y; break;
+					case 12: c_j = c_i + n_cells.x     - n_cells.x*n_cells.y; break;
+					case 13: c_j = c_i + n_cells.x + 1 - n_cells.x*n_cells.y; break;
+					case 14: c_j = c_i + n_cells.x - 1 - n_cells.x*n_cells.y; break;
+					case 15: c_j = c_i - n_cells.x     - n_cells.x*n_cells.y; break;
+					case 16: c_j = c_i - n_cells.x + 1 - n_cells.x*n_cells.y; break;
+					case 17: c_j = c_i - n_cells.x - 1 - n_cells.x*n_cells.y; break;
 
-					case 18: c_j = c_i + 0          + lvec.x*lvec.y; break;
-					case 19: c_j = c_i + 1          + lvec.x*lvec.y; break;
-					case 20: c_j = c_i - 1          + lvec.x*lvec.y; break;
-					case 21: c_j = c_i + lvec.x     + lvec.x*lvec.y; break;
-					case 22: c_j = c_i + lvec.x + 1 + lvec.x*lvec.y; break;
-					case 23: c_j = c_i + lvec.x - 1 + lvec.x*lvec.y; break;
-					case 24: c_j = c_i - lvec.x     + lvec.x*lvec.y; break;
-					case 25: c_j = c_i - lvec.x + 1 + lvec.x*lvec.y; break;
-					case 26: c_j = c_i - lvec.x - 1 + lvec.x*lvec.y; break;
+					case 18: c_j = c_i + 0             + n_cells.x*n_cells.y; break;
+					case 19: c_j = c_i + 1             + n_cells.x*n_cells.y; break;
+					case 20: c_j = c_i - 1             + n_cells.x*n_cells.y; break;
+					case 21: c_j = c_i + n_cells.x     + n_cells.x*n_cells.y; break;
+					case 22: c_j = c_i + n_cells.x + 1 + n_cells.x*n_cells.y; break;
+					case 23: c_j = c_i + n_cells.x - 1 + n_cells.x*n_cells.y; break;
+					case 24: c_j = c_i - n_cells.x     + n_cells.x*n_cells.y; break;
+					case 25: c_j = c_i - n_cells.x + 1 + n_cells.x*n_cells.y; break;
+					case 26: c_j = c_i - n_cells.x - 1 + n_cells.x*n_cells.y; break;
 				#endif
 			}
 
 			j = ihoc[c_j];
 			while((j < N) && (icell[j] == c_j)) {
-				if(!move_i){
-					#include "RatesSensors.hcl"
-				}
-				else{
-					#if __BOUNDARY__==0
-						// ElasticBounce boundary condition
-						if(move_i < 0){
-							#include "RatesBounds.hcl"
-						}
-						else{
-							#include "Rates.hcl"
-						}
-					#elif __BOUNDARY__==1
-						// Fix particles
-						#include "Rates.hcl"
-					#elif __BOUNDARY__==2
-						// DeLeffe boundary condition
-						if(move_i < 0){
-							#include "RatesBounds.hcl"
-						}
-						else{
-							#include "Rates.hcl"
-						}
-					#else
-						#error Unknow boundary condition
-					#endif
-		        }
+			    if(move_i == 0){
+				    #include "RatesSensors.hcl"
+			    }
+			    else if((move_i == 1) || (move_i == -1)){
+				    #include "Rates.hcl"
+                }
+                else{
+				    #include "RatesBounds.hcl"
+                }
 				j++;
 			}			
 		}
+
 		// Home cell, starting from the head of chain
         // ==========================================
 		j = ihoc[c_i];
 		while(j < i) {
-			if(!move_i){
+			if(move_i == 0){
 				#include "RatesSensors.hcl"
 			}
-			else{
-				#if __BOUNDARY__==0
-					// ElasticBounce boundary condition
-					if(move_i < 0){
-						#include "RatesBounds.hcl"
-					}
-					else{
-						#include "Rates.hcl"
-					}
-				#elif __BOUNDARY__==1
-					// Fix particles
-					#include "Rates.hcl"
-				#elif __BOUNDARY__==2
-					// DeLeffe boundary condition
-					if(move_i < 0){
-						#include "RatesBounds.hcl"
-					}
-					else{
-						#include "Rates.hcl"
-					}
-				#else
-					#error Unknow boundary condition
-				#endif
-			}
+			else if((move_i == 1) || (move_i == -1)){
+				#include "Rates.hcl"
+            }
+            else{
+				#include "RatesBounds.hcl"
+            }
 			j++;
 		}
     }
+
 	// Self particle effect
 	// ====================
-	if(move_i){
-		#if __BOUNDARY__==0 || __BOUNDARY__==2
-			// Contour not included
-			if(move_i > 0){
-				const float wab = kernelW(0.f) * conw * mass[i];
-				_SHEPARD_ += wab / dens_i;
-			}
-		#else
-			const float wab = kernelW(0.f) * conw * mass[i];
-			_SHEPARD_ += wab / dens_i;
-		#endif
-	}
+	if((move_i == 1) || (move_i == -1)){
+		const float wab = kernelW(0.f) * conw * m[i];
+		_SHEPARD_ += wab / rho_i;
+    }
 
 	#ifdef LOCAL_MEM_SIZE
-		f[i] = _F_;
-		drdt[i] = _DRDT_;
-		drdt_F[i] = _DRDT_F_;
+		dvdt[i] = _DVDT_;
+		drhodt[i] = _DRDT_;
 		shepard[i] = _SHEPARD_;
 	#endif
 

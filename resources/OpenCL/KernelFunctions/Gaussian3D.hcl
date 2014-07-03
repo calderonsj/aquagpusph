@@ -26,11 +26,6 @@
 	#define iM_PI 0.318309886f
 #endif
 
-/// @def sep Amount of kernel heights h into the maximum effect distance. 
-#ifndef sep
-	#define sep 3.f
-#endif
-
 /** Method that returns kernel amount with given distance / kernel height rate.
  * @param q distance over kernel height
  * @return Kernel amount

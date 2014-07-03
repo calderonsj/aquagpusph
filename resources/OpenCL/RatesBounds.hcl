@@ -16,37 +16,28 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ------------------------------------------------------------------
-// Study if two particles can interact
-// ------------------------------------------------------------------
-if(!imove[j]){
-	j++;
-	continue;
+if((imove[j] != -1) &&
+   (imove[j] != 1)){
+    j++;
+    continue;
 }
-#if __BOUNDARY__==0 || __BOUNDARY__==2
-	// ElasticBounce or DeLeffe boundary condition
-	if(imove[j]<0){
-		j++;
-		continue;
-	}
-#endif
 
 const vec r = pos_i - pos[j];
 const float q = fast_length(r) / h;
-if(q <= sep)
+if(q < support)
 {
 	//---------------------------------------------------------------
 	//       calculate the kernel wab and the function fab
 	//---------------------------------------------------------------
-	const float dens_j = dens[j];
-	const float mass_j = mass[j];
-    const float press_j = press[j];
-	const float wab = kernelW(q) * conw * mass_j;
+	const float rho_j = rho[j];
+	const float m_j = m[j];
+    const float p_j = p[j];
+	const float wab = kernelW(q) * conw * m_j;
 	//---------------------------------------------------------------
 	//       pressure computation (stored on f)
 	//---------------------------------------------------------------
-	_F_.x += press_j / dens_j * wab;
-	_F_.y += dot(grav, r) * wab;
+	_DVDT_.x += p_j / rho_j * wab;
+	_DVDT_.y += dot(g, r) * wab;
 	//---------------------------------------------------------------
 	// 	density computation (stored on drdt)
 	//---------------------------------------------------------------
@@ -54,9 +45,5 @@ if(q <= sep)
 	//---------------------------------------------------------------
 	// 	Shepard term
 	//---------------------------------------------------------------
-	_SHEPARD_ += wab / dens_j;
-	//---------------------------------------------------------------
-	// 	Pressure variance computation (2nd order moment)
-	//---------------------------------------------------------------
-    _DRDT_F_ += dens_j * wab;
+	_SHEPARD_ += wab / rho_j;
 }
