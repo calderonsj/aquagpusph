@@ -16,7 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// To use Gaussian kernel please compile AQUAgpusph with Gauss kernel option
 #ifndef HAVE_3D
     #include "types/2D.h"
 	#include "KernelFunctions/Wendland2D.hcl"
@@ -43,7 +42,6 @@ __kernel void main(const __global uint* iset, const __global int* imove,
                    const __global vec* pos, const __global vec* v,
                    const __global float* rho, const __global float* m,
                    const __global float* p, __constant float* refd,
-
                    __global vec* grad_p, __global vec* lap_u,
                    __global float* div_u, __global float* lap_p,
                    __global float* shepard,
@@ -56,9 +54,6 @@ __kernel void main(const __global uint* iset, const __global int* imove,
 	const uint it = get_local_id(0);
 	if(i >= N)
 		return;
-
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
 
     const uint c_i = icell[i];
     const int move_i = imove[i];
@@ -112,13 +107,13 @@ __kernel void main(const __global uint* iset, const __global int* imove,
         j = i + 1;
 		while((j < N) && (icell[j] == c_i) ) {
 			if(move_i == 0){
-				#include "RatesSensors.hcl"
+				#include "InteractionsSensors.hcl"
 			}
 			else if((move_i == 1) || (move_i == -1)){
-				#include "Rates.hcl"
+				#include "Interactions.hcl"
             }
             else{
-				#include "RatesBounds.hcl"
+				#include "InteractionsBounds.hcl"
             }
 			j++;
 		}
@@ -163,13 +158,13 @@ __kernel void main(const __global uint* iset, const __global int* imove,
 			j = ihoc[c_j];
 			while((j < N) && (icell[j] == c_j)) {
 			    if(move_i == 0){
-				    #include "RatesSensors.hcl"
+				    #include "InteractionsSensors.hcl"
 			    }
 			    else if((move_i == 1) || (move_i == -1)){
-				    #include "Rates.hcl"
+				    #include "Interactions.hcl"
                 }
                 else{
-				    #include "RatesBounds.hcl"
+				    #include "InteractionsBounds.hcl"
                 }
 				j++;
 			}			
@@ -180,13 +175,13 @@ __kernel void main(const __global uint* iset, const __global int* imove,
 		j = ihoc[c_i];
 		while(j < i) {
 			if(move_i == 0){
-				#include "RatesSensors.hcl"
+				#include "InteractionsSensors.hcl"
 			}
 			else if((move_i == 1) || (move_i == -1)){
-				#include "Rates.hcl"
+				#include "Interactions.hcl"
             }
             else{
-				#include "RatesBounds.hcl"
+				#include "InteractionsBounds.hcl"
             }
 			j++;
 		}
@@ -206,8 +201,4 @@ __kernel void main(const __global uint* iset, const __global int* imove,
 		lap_p[i] = _LAPP_;
 		shepard[i] = _SHEPARD_;
 	#endif
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
-
 }
