@@ -114,7 +114,7 @@ private:
     InputOutput::Variable *_output_var;
 
     /// Set input variable
-    cl_mem *_input;
+    cl_mem _input;
 
 	/// OpenCL kernels
 	std::deque<cl_kernel> _kernels;
