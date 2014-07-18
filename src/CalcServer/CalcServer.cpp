@@ -26,7 +26,6 @@
 #include <AuxiliarMethods.h>
 #include <FileManager.h>
 #include <ProblemSetup.h>
-#include <Fluid.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
 #include <CalcServer/Copy.h>
@@ -526,7 +525,6 @@ bool CalcServer::setup()
 	unsigned int i, j;
 	cl_uint err_code=0;
 	char msg[512];
-	InputOutput::Fluid *F = InputOutput::Fluid::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	strcpy(msg, "");
