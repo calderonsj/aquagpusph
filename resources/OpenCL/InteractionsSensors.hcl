@@ -16,4 +16,4 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RatesBounds.hcl"
+#include "InteractionsBounds.hcl"
