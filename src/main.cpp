@@ -55,43 +55,43 @@ using namespace Aqua;
  */
 int main(int argc, char *argv[])
 {
-	InputOutput::ArgumentsManager *A = NULL;
-	InputOutput::FileManager *F = NULL;
-	InputOutput::ProblemSetup *P = NULL;
-	CalcServer::CalcServer *C = NULL;
-	InputOutput::TimeManager *T = NULL;
-	InputOutput::ScreenManager *S = NULL;
-	char msg[256];
-	strcpy(msg, "");
+    InputOutput::ArgumentsManager *A = NULL;
+    InputOutput::FileManager *F = NULL;
+    InputOutput::ProblemSetup *P = NULL;
+    CalcServer::CalcServer *C = NULL;
+    InputOutput::TimeManager *T = NULL;
+    InputOutput::ScreenManager *S = NULL;
+    char msg[256];
+    strcpy(msg, "");
 
-	printf("\n");
-	printf("\t#########################################################\n");
-	printf("\t#                                                       #\n");
-	printf("\t#    #    ##   #  #   #                           #     #\n");
-	printf("\t#   # #  #  #  #  #  # #                          #     #\n");
-	printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
-	printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
-	printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
-	printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
-	printf("\t#                            # #             #          #\n");
-	printf("\t#                          ##  #             #          #\n");
-	printf("\t#                                                       #\n");
-	printf("\t#########################################################\n");
-	printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
-	printf("\t\thttp://canal.etsin.upm.es/\n");
-	printf("\tAuthors:\n");
-	printf("\t\tJose Luis Cercos Pita\n");
-	printf("\t\tLeo Miguel Gonzalez\n");
-	printf("\t\tAntonio Souto-Iglesias\n");
-	printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
-	printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
-	printf("\tThis is free software, and you are welcome to redistribute it\n");
-	printf("\tunder certain conditions; see LICENSE for details.\n");
-	printf("\n");
+    printf("\n");
+    printf("\t#########################################################\n");
+    printf("\t#                                                       #\n");
+    printf("\t#    #    ##   #  #   #                           #     #\n");
+    printf("\t#   # #  #  #  #  #  # #                          #     #\n");
+    printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
+    printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
+    printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
+    printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
+    printf("\t#                            # #             #          #\n");
+    printf("\t#                          ##  #             #          #\n");
+    printf("\t#                                                       #\n");
+    printf("\t#########################################################\n");
+    printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
+    printf("\t\thttp://canal.etsin.upm.es/\n");
+    printf("\tAuthors:\n");
+    printf("\t\tJose Luis Cercos Pita\n");
+    printf("\t\tLeo Miguel Gonzalez\n");
+    printf("\t\tAntonio Souto-Iglesias\n");
+    printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
+    printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
+    printf("\tThis is free software, and you are welcome to redistribute it\n");
+    printf("\tunder certain conditions; see LICENSE for details.\n");
+    printf("\n");
 
-	A = new InputOutput::ArgumentsManager(argc,argv);
-	F = new InputOutput::FileManager();
-	P = new InputOutput::ProblemSetup();
+    A = new InputOutput::ArgumentsManager(argc,argv);
+    F = new InputOutput::FileManager();
+    P = new InputOutput::ProblemSetup();
 
     // We must start reading the runtime arguments
     if(A->parse()){
@@ -116,39 +116,55 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-	T = new InputOutput::TimeManager();
+    T = new InputOutput::TimeManager();
 
-	S->addMessageF(1, "Start of simulation...\n\n");
-	S->printDate();
-	S = new InputOutput::ScreenManager();
+    S->addMessageF(1, "Start of simulation...\n\n");
+    S->printDate();
+    S = new InputOutput::ScreenManager();
 
-	while(!T->mustStop())
-	{
-		if(C->update()){
-	        float Time = T->time();
-	        delete S; S = NULL;
+    while(!T->mustStop())
+    {
+        if(C->update()){
+            float Time = T->time();
+            delete S; S = NULL;
             S->printDate();
-	        S->addMessageF(1, "Destroying time manager...\n");
-	        delete T; T = NULL;
-	        S->addMessageF(1, "Destroying calculation server...\n");
-	        delete C; C = NULL;
-	        S->addMessageF(1, "Destroying problem setup...\n");
-	        delete P; P = NULL;
-	        S->addMessageF(1, "Destroying arguments manager...\n");
+            S->addMessageF(1, "Destroying time manager...\n");
+            delete T; T = NULL;
+            S->addMessageF(1, "Destroying calculation server...\n");
+            delete C; C = NULL;
+            S->addMessageF(1, "Destroying problem setup...\n");
+            delete P; P = NULL;
+            S->addMessageF(1, "Destroying arguments manager...\n");
             delete A; A = NULL;
-	        S->addMessageF(1, "Destroying files manager...\n");
-	        delete F; F = NULL;
-	        sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-	        S->addMessageF(1, msg);
-		    return EXIT_FAILURE;
-		}
-		// fluid->retrieveData();
-		if(F->save())
+            S->addMessageF(1, "Destroying files manager...\n");
+            delete F; F = NULL;
+            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
+            S->addMessageF(1, msg);
             return EXIT_FAILURE;
-	        delete S; S = NULL;
+        }
 
-		/// @todo let the tool to continue computing
+        if(F->save()){
+            float Time = T->time();
+            delete S; S = NULL;
+            S->printDate();
+            S->addMessageF(1, "Destroying time manager...\n");
+            delete T; T = NULL;
+            S->addMessageF(1, "Destroying calculation server...\n");
+            delete C; C = NULL;
+            S->addMessageF(1, "Destroying problem setup...\n");
+            delete P; P = NULL;
+            S->addMessageF(1, "Destroying arguments manager...\n");
+            delete A; A = NULL;
+            S->addMessageF(1, "Destroying files manager...\n");
+            delete F; F = NULL;
+            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
+            S->addMessageF(1, msg);
+            return EXIT_FAILURE;
+        }
+
+        /// @todo let the tool to continue computing
         float Time = T->time();
+        delete S; S = NULL;
         S->printDate();
         S->addMessageF(1, "Destroying time manager...\n");
         delete T; T = NULL;
@@ -163,24 +179,24 @@ int main(int argc, char *argv[])
         sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
         S->addMessageF(1, msg);
         return EXIT_FAILURE;
-	}
+    }
 
-	delete S; S = NULL;
+    delete S; S = NULL;
     S->printDate();
 
-	float Time = T->time();
+    float Time = T->time();
     S->addMessageF(1, "Destroying time manager...\n");
-	delete T; T = NULL;
+    delete T; T = NULL;
     S->addMessageF(1, "Destroying calculation server...\n");
-	delete C; C = NULL;
+    delete C; C = NULL;
     S->addMessageF(1, "Destroying problem setup...\n");
-	delete P; P = NULL;
+    delete P; P = NULL;
     S->addMessageF(1, "Destroying arguments manager...\n");
-	delete A; A = NULL;
+    delete A; A = NULL;
     S->addMessageF(1, "Destroying files manager...\n");
-	delete F; F = NULL;
-	// Exiting
+    delete F; F = NULL;
+    // Exiting
     sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
     S->addMessageF(1, msg);
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
