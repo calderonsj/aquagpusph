@@ -234,6 +234,14 @@ bool State::parse(const char* filepath)
         xmlClear();
 	    return true;
     }
+	if(parseVariables(root)){
+        xmlClear();
+	    return true;
+    }
+	if(parseTools(root)){
+        xmlClear();
+	    return true;
+    }
 	if(parseOpenCL(root)){
         xmlClear();
 	    return true;
@@ -251,6 +259,10 @@ bool State::parse(const char* filepath)
 	    return true;
     }
 	if(parseFluid(root)){
+        xmlClear();
+	    return true;
+    }
+	if(parseSet(root)){
         xmlClear();
 	    return true;
     }
