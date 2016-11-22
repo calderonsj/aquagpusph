@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="T" type="float*" length="N" />
+        <Variable name="T_in" type="float*" length="N" />
+	<Variable name="dTdt" type="float*" length="N" />
+        <Variable name="dTdt_in" type="float*" length="N" />
+	<Variable name="lap_T" type="float*" length="N" />
+	<Variable name="pdiv_u" type="float*" length="N" />
+	<Variable name="kc" type="float" value="100" />
+	<Variable name="cp" type="float" value="1000" />
+    </Variables>
+
+  <Tools>
+    <!-- comentario -->
+    <Tool entry_point="predictor" action="insert" before="Predictor" name="Predictor_T" path="Temperature.cl" type="kernel"/>
+    <Tool entry_point="corrector" action="insert" after="Corrector" name="Corrector_T" path="Temperature.cl" type="kernel"/>
+    <!--Tool in="T" name="Backup T" out="T_in" action="insert" after="Backup m" type="copy"/-->
+    <Tool entry_point="sort" n="N" name="sort temperature" action="insert" after="sort stage2" path="Temperature.cl" type="kernel"/>
+    <Tool in="dTdt" name="Backup dTdt" out="dTdt_in" action="insert" after="Backup drhodt" type="copy"/>
+    <Tool in="lap_T" name="cfd reinit lap_T" action="insert" after="cfd Reinit grad_p" type="set" value="0.f"/>
+    <Tool entry_point="lap" n="N" name="cfd laplacian interactions" action="insert" after="cfd interactions" path="Temperature.cl" type="kernel"/>
+    <Tool entry_point="pdivu" n="N" name="cfd pdivu interactions" action="insert" after="cfd interactions" path="Temperature.cl" type="kernel"/>
+    <Tool entry_point="rates" n="N" name="cfd temperature rates" action="insert" before="Rates" path="Temperature.cl" type="kernel"/>
+  </Tools>
+</sphInput>
