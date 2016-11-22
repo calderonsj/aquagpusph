@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Reports>
+        <Report type="screen" name="Tgas" fields="Tgas,pgas,Tsat; pSat,rhog,mgas;" color="blue" bold="false"/>
+        <Report type="file" name="Tgas file" fields="t, Tgas, pgas, Tsat, pSat, rhog, mgas" path="Tgas.dat"/>
+    </Reports>
+</sphInput>
