@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+
+<!-- packing.xml
+This preset is included to add the particle packing algorithm,
+developed by Colagrossi et al (2012). The particle packing algorithm
+is suitable for simulations in which a good initial distribution of 
+particles is needed, as it reduces their spurious movement.
+
+The particle packing algorithm consists therefore in reducing the uneveness of
+particle distribution by minimizing a set of equations in which the gradient of
+gamma is the function to be minimized
+
+The particle packing has its base on basic.xml, and it adds a set of variables
+and processes that are needed.
+
+Within packing.xml, the following variables are defined, on top of the default
+ones already defined by AQUAgpusph (see below):
+- Scalars:
+	- V0: Particles volume (dr^DIMS)
+	- beta: 2 * p0 / rho0
+	- zeta: alpha * sqrt(beta) / V0^(1 / DIMS)
+
+- Arrays:
+	- grad_gamma: gradient of Gamma (accounts for the uneveness of particle dist)
+
+The rate of change of density is set to zero, as it is not needed.
+Boundary interactions are included for the Boundary Integrals approach (for the moment)
+and shepard is therefore included.
+
+The following scalar variables are required when using this preset:
+	- p0: reference pressure. Is to be set as the maximum hydrostatic pressure.
+	- rho0: reference density
+	- alpha: variable that sets the rate of dissipation for velocity
+	For stability is recommended to be set as the inverse of the courant
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="shepard" type="float*" length="N" />       
+        <Variable name="grad_gamma" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+    	<!-- Reinit ephimere variables -->
+        <Tool name="cfd Reinit shepard" action="insert" after="Sort" type="set" in="shepard" value="0.f"/>
+        <Tool name="cfd Reinit drhodt" action="insert" after="Sort" type="set" in="drhodt" value="0.f"/>
+        <Tool name="cfd Reinit grad_gamma" action="insert" after="Sort" type="set" in="grad_gamma" value="VEC_ZERO"/>
+    	
+        <!-- Particles interactions -->
+        <Tool name="packing Shepard" action="insert" before="Interactions" type="kernel" path="/home/calderon/SPH/aquagpusph.cmake/resources/Scripts/basic/Shepard.cl" />
+        <Tool name="packing Interactions" action="insert" before="Interactions" type="kernel" path="/home/calderon/SPH/aquagpusph.cmake/resources/Scripts/packing/Interactions.cl"/>
+        <!-- THIS SHOULD GO TO A DIFFERENT MODULE which accounts for BI-->
+        <Tool name="packing BI Interactios" action="insert" before="Interactions" type="kernel" path="/home/calderon/SPH/aquagpusph.cmake/resources/Scripts/packing/Boundary/BI/Interactions.cl"/>
+
+        <!-- Rates computation -->
+        <Tool name="cfd packing rates" action="insert" before="Rates" type="kernel" path="/home/calderon/SPH/aquagpusph.cmake/resources/Scripts/packing/Rates.cl"/>
+    </Tools>
+</sphInput>
