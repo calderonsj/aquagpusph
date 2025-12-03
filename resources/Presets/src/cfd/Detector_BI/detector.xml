@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<!-- detector.xml
+Compute a free surface flag according to the free surface detection algorithm presented in:
+Marrone, Salvatore, et al. "Fast free-surface detection and level-set function definition in SPH solvers." 
+Journal of Computational Physics 229.10 (2010): 3652-3663.
+
+It includes the effect of BI boundaries, so the free surface is not tracked there.
+
+The tool is split in two steps.
+
+To use it, you have to include first the files MLS.xml and freeSurface-normal.xml. 
+
+The output of this tool is the flag frees:
+	- frees = 1 The particle belongs to the free surface.
+	- frees = 0 The particle does not belong to the free surface.
+-->
+
+<sphInput>
+    <Variables>
+	<Variable name="frees" type="int*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Remove the existing instances to ensure we are not repeating the job -->
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit frees" in="frees" value="0"/>
+	<Tool name="first free surface detection" action="insert" after="free surface normal" type="kernel" entry_point="first" path="../../../Scripts/cfd/Boundary/BI/Detector/detector.cl"/>
+	<Tool name="free surface detector" action="insert" after="first free surface detection" type="kernel" entry_point="second" path="../../../Scripts/cfd/Boundary/BI/Detector/detector.cl"/>
+   </Tools>
+</sphInput>

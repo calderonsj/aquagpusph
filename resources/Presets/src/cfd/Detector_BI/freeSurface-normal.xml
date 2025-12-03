@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<!-- freeSurface-normal.xml
+Compute the normal of fluid particles.
+
+The tool is split in two steps:
+	- First, the eigenvalues of the mls transformation matrix are computed.
+	- Then, using these values, the fluid normals are computed.
+
+To use it, you have to include first the file MLS.xml. 
+
+The output of this tool are the lambda and the inormal variable.
+-->
+
+<sphInput>
+    <Include file="MLS_BI.xml" />
+
+    <Variables>
+        <Variable name="lambda_bi" type="float*" length="N" />
+	<Variable name="inormal" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Remove the existing instances to ensure we are not repeating the job -->
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit lambda bi" in="lambda_bi" value="0.f"/>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit inormal" in="inormal" value="VEC_ZERO"/>
+        <Tool name="lambda BI" action="insert" after="mls_bi inverse" type="kernel" entry_point="lambdabi" path="../../../Scripts/cfd/Boundary/BI/Detector/freeSurface-normal.cl"/>
+	<Tool name="free surface normal" action="insert" after="lambda BI" type="kernel" entry_point="normal" path="../../../Scripts/cfd/Boundary/BI/Detector/freeSurface-normal.cl"/>
+   </Tools>
+</sphInput>
