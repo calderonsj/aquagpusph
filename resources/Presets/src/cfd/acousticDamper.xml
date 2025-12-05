@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+
+<!-- acousticDamper.xml
+acousticDamper is a method to introduce a viscous term specifically conceived to reduce the
+amount of acoustic pressure waves in weakly-compressible SPH models. It is based in the
+formulation presented in:
+    P.N Sun, C. Pilloton, M. Antuono, A. Colagrossi "Inclusion of an acoustic damper term in weakly-compressible SPH models"
+    Journal of Computational Physics, Volume 483, 2023, 112056, ISSN 0021-9991, https://doi.org/10.1016/j.jcp.2023.112056.
+
+This term only acts on the acoustic component of the pressure field, which is
+generated as a consequence of liquid impacts and of the assumption that the ﬂuid is
+weakly-compressible, whereas it leaves the incompressible-like component unchanged.
+
+The proposed acoustic damper term converges to zero when the
+particle resolution increases, recovering the consistency with the Navier-Stokes equations.
+
+Remember that after including this preset, a new property alpha_ad should be set as a general variable, while a new value of lambda_ad should be imposed
+for each particles set. Nonetheless, these two parameters are related through the relationship:
+
+  lambda_ad = alpha_ad * refd * cs * hfac * dr
+
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="alpha_ad" type="float" value="0.0" />
+        <Variable name="lambda_ad" type="float*" length="n_sets" />
+        <Variable name="fi_ad" type="vec*" length="N" />
+    </Variables>
+    <Tools>
+		    <Tool action="insert" after="Sort" type="set" name="cfd Reinit fi_ad" in="fi_ad" value="VEC_ZERO"/>
+        <Tool name="cfd acoustic damper interactions" action="insert" after="cfd interactions" type="kernel" entry_point="acousticTerm" path="../../Scripts/cfd/acousticDamper.cl" />
+        <Tool name="cfd acoustic damper rates" action="insert" after="cfd rates" type="kernel" entry_point="rates" path="../../Scripts/cfd/acousticDamper.cl" />
+ 	</Tools>
+</sphInput>
