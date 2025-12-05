@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+
+<!-- shifting-freeSurface.xml
+Shifting is a method to improve the quality of the particle distribution 
+and reduce numerical instabilities through the introduction of a small 
+corrective displacement in the particle motion equation.
+
+This corrective displacement is computed from local measures of disorder,
+typically based on kernel gradients, and applied on top of the physical velocity field.
+
+The shifting vector is evaluated using a the SPH approximation given in
+
+Sun, P. N., et al. "A consistent approach to particle shifting in the δ-Plus-SPH model." 
+Computer Methods in Applied Mechanics and Engineering 348 (2019): 912-934.
+
+This the correction for particles close to the free surface.
+This preset works together with the free-surface detector algorithm, see detector.xml. 
+
+Remember that after including this preset, a new control parameter for each particle set 
+should be imposed, the shifting factor (typically Uref = Ma cs), which scales the intensity
+of the corrective displacement.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="kappa" type="int*" length="N" />
+	<Variable name="region" type="int*" length="N" />
+    </Variables>
+    <Tools>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit kappa" in="kappa" value="1"/>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit region" in="region" value="0"/>
+	<Tool action="insert" after="cfd du" type="kernel" name="free surface kappa" entry_point="threshold" path="../../../Scripts/cfd/shifting/shifting-freesurface.cl"/>
+	<Tool name="free surface region" action="insert" after="free surface kappa" type="kernel" entry_point="region" path="../../../Scripts/cfd/shifting/shifting-freesurface.cl"/>
+	<Tool action="insert" after="free surface region" type="kernel" name="free surface correction" entry_point="entry" path="../../../Scripts/cfd/shifting/shifting-freesurface.cl"/>
+    </Tools>
+</sphInput>

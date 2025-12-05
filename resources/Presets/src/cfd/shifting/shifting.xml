@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+
+<!-- shifting.xml
+Shifting is a method to improve the quality of the particle distribution 
+and reduce numerical instabilities through the introduction of a small 
+corrective displacement in the particle motion equation.
+
+This corrective displacement is computed from local measures of disorder,
+typically based on kernel gradients, and applied on top of the physical velocity field.
+
+The shifting vector is evaluated using a the SPH approximation given in
+
+Sun, P. N., et al. "A consistent approach to particle shifting in the δ-Plus-SPH model." 
+Computer Methods in Applied Mechanics and Engineering 348 (2019): 912-934.
+
+There is a correction for particles close to BI boundaries. 
+
+It is possible to add alternative formulations, just define the new one similar to:
+"__SUN_SHIFTING__"
+
+Remember that after including this preset, a new control parameter for each particle set 
+should be imposed, the shifting factor (typically Uref = Ma cs), which scales the intensity
+of the corrective displacement.
+
+Optionally you can tune the effect of the anti-clumping term using the following definition:
+
+- __AC_FACTOR__: Anticlumping term factor (R) for shifting (0.f by default)
+
+To include it, just add this definition before loading the module:
+    <Definitions>
+        <Define name="__AC_FACTOR__" value="0.2" evaluate="false"/>
+    </Definitions>
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="du_shift" type="vec*" length="N" />
+	<Variable name="Uref" type="float" value="0.0" />
+	<Variable name="gradC" type="vec*" length="N" />
+    </Variables>
+
+    <Definitions>
+        <Define name="__SUN_SHIFTING__" value="1" evaluate="false"/>
+        <Define name="__SHIFTING_FORMULATION__" value="__SUN_SHIFTING__" evaluate="false"/>
+    </Definitions>
+
+    <Tools>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit du_shift" in="du_shift" value="VEC_ZERO"/>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit gradC" in="gradC" value="VEC_ZERO"/>
+        <Tool name="du gradC fluid" before="Interactions" type="kernel" action="insert" entry_point="drfluid" path="../../../Scripts/cfd/shifting/shifting.cl"/>
+        <Tool action="insert" before="Rates" type="kernel" name="cfd du" entry_point="du" path="../../../Scripts/cfd/shifting/shifting.cl"/>
+        <Tool action="insert" after="Corrector" type="kernel" name="cfd shifting" entry_point="correct" path="../../../Scripts/cfd/shifting/shifting.cl"/>
+        </Tools>
+</sphInput>
