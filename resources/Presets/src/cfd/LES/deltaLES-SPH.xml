@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+
+<!-- deltaLES-SPH.xml
+LES method for SPH based on existing delta-SPH.
+
+LES turbulence model is implemented based on the works by
+Di Mascio, A., et al. "Smoothed particle hydrodynamics method from a large eddy simulation perspective." Physics of Fluids 29.3 (2017).
+Meringolo, Domenico D., et al. "A dynamic δ-SPH model: How to get rid of diffusive parameter tuning." Computers & Fluids 179 (2019): 334-355.
+
+This module calls automatically a corrected delta-SPH method: deltaSPH-rho-LES.xml and deltaSPH-full-rho-LES.xml
+
+This module adds the turbulent viscosity computed according to the LES standard to the physical viscosity computed from preset cfd.xml
+-->
+
+<sphInput>
+
+
+    <Include file="../deltaSPH-rho/deltaSPH-rho.xml" />
+    <Include file="../deltaSPH-rho/deltaSPH-full-rho.xml" />
+
+    <Variables>
+	<Variable name="D" type="matrix*" length="N" />
+	<Variable name="absD" type="float*" length="N" />
+
+	<Variable name="Ldelta" type="float*" length="N" />
+	<Variable name="Lalpha" type="float*" length="N" />
+
+	<Variable name="lap_u_turb" type="vec*" length="N" />
+	<Variable name="LLes" type="float" value="0.0" />
+    </Variables>
+
+    <Tools>
+	<!-- Reinit the necessary variables -->
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit d" in="D" value="MAT_ZERO"/>
+	<Tool action="insert" after="Sort" type="set" name="cfd Reinit absD" in="absD" value="0.f"/>
+  	<Tool action="insert" after="Sort" type="set" name="cfd Reinit Ldelta" in="Ldelta" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit Lalpha" in="Lalpha" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_u_turb" in="lap_u_turb" value="VEC_ZERO"/>
+        <!-- Compute the Diffusive matrix -->
+        <Tool name="cfd diff matrix" action="insert" before="cfd interactions" type="kernel" entry_point="diff" path="../../../Scripts/cfd/LES/deltaLES.cl"/>
+	<!-- Compute the diffusive terms for delta and alpha -->
+	<Tool name="cfd diff float" action="insert" after="cfd diff matrix" type="kernel" entry_point="absDiff" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd alpha-delta definition" action="insert" after="cfd diff float" type="kernel" entry_point="deltaalpha" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd alpha_ij interactions" action="insert" before="Rates" type="kernel" entry_point="alphaij" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd lap p" action="replace"  type="kernel" entry_point="deltaij1" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd lap p apply correction" action="replace"  type="kernel" entry_point="deltaij2" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd LES rates" action="insert" after="cfd rates" type="kernel" entry_point="ratesLES" path="../../../Scripts/cfd/LES/deltaLES.cl" />
+	<Tool name="cfd delta-SPH" action="replace" type="kernel" entry_point="deltaSPH" path="../../../Scripts/cfd/LES/deltaLES.cl"/>
+ 	</Tools>
+</sphInput>
