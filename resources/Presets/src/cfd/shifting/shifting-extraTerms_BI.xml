@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+<!-- deltaSPH.xml
+Extra terms needed for delta-plus SPH formulation for Boundary Integrals formulation.
+This is a pseudo-ALE formulation.
+
+These terms are built from the consideration of shifting velocity into the equations.
+
+The present implementation is based on the following reference:
+
+Antuono, M., et al. "The δ-ALE-SPH model: An arbitrary Lagrangian-Eulerian framework 
+for the δ-SPH model with particle shifting technique." Computers & Fluids 216 (2021).
+-->
+
+<sphInput>
+
+    <Tools>
+	<Tool action="insert" after="cfd extra fluid ALE continuity" type="kernel" name="cfd extra ALE continuity" entry_point="extrabi" path="../../../Scripts/cfd/Boundary/BI/shifting-extraTerms.cl"/>	
+        <Tool action="insert" after="cfd extra ALE continuity" type="kernel" name="cfd extra shepard" entry_point="extrashepard" path="../../../Scripts/cfd/Boundary/BI/shifting-extraTerms.cl"/>
+        </Tools>
+</sphInput>
