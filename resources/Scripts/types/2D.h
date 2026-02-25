@@ -249,6 +249,11 @@ matrix outer(const vec v1, const vec v2)
     return m;
 }
 
+float doubledot(const matrix m1, const matrix m2)
+{
+	return (m1.s0 * m2.s0 + m1.s1 * m2.s2 + m1.s2 * m2.s1 + m1.s3 * m2.s3);
+} 
+
 /** @brief Determinant of a matrix
  *
  * @param m Matrix to invert
