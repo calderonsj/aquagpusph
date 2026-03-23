@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY(adiabatic_expansion)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
 ADD_SUBDIRECTORY(lobovsky_etal_2014)
+ADD_SUBDIRECTORY(lobovsky_etal_2014_LES)
 ADD_SUBDIRECTORY(normal_impact)
 ADD_SUBDIRECTORY(normal_impact_wall)
 ADD_SUBDIRECTORY(souto_etal_2012_standingwave)

@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    https://aquagpusph.org/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="resources/Presets/basic.xml" />
+    <Include file="resources/Presets/basic/time_scheme/improved_euler.xml" />
+    <Include file="resources/Presets/basic/domain.xml" />
+    <Include file="resources/Presets/cfd.xml" />
+    <Include file="resources/Presets/cfd/LES/deltaLES-SPH.xml" />
+    <Include file="resources/Presets/cfd/BI.xml" />
+    <Include file="resources/Presets/cfd/Detector_BI/freeSurface-normal.xml" />
+    <Include file="resources/Presets/cfd/Detector_BI/detector.xml" />
+    <Include file="resources/Presets/cfd/elasticBounce.xml" />
+    <Include file="resources/Presets/cfd/shifting/shifting.xml" />
+    <Include file="resources/Presets/cfd/shifting/shifting_BI.xml" />
+    <Include file="resources/Presets/cfd/shifting/shifting-freeSurface.xml" />
+    <Include file="resources/Presets/cfd/shifting/shifting-extraTerms.xml" />
+    <Include file="resources/Presets/cfd/energy.xml" />
+    <Include file="resources/Presets/cfd/energy.report.xml" />
+    <Include file="resources/Presets/cfd/variableTimeStep.xml" />
+    <Include file="resources/Presets/basic/timing.report.xml" />
+    <Include file="resources/Presets/basic/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Time.xml" />
+    <Include file="Fluids.xml" />
+    <Include file="Sensors.xml" />
+</sphInput>
